@@ -1,7 +1,8 @@
-<!-- Updated: 2025-02-20 -->
-# MacRing -- System Architecture Codemap
+# MacRing Architecture Codemap
 
-> Status: **Phase 1 (Foundation)** -- Profile and UI models implemented, testing infrastructure in place
+> **Last Updated:** 2026-02-21
+> **Phase:** Foundation (Phase 1 ✅ Complete)
+> **Platform:** macOS 14+
 
 ---
 
@@ -10,59 +11,98 @@
 | Layer | Status | Files |
 |-------|--------|-------|
 | App | Planned | .gitkeep only |
-| UI | **Implemented** | `RingGeometry.swift` complete with 30 tests |
-| Profile | **Implemented** | `RingAction.swift`, `RingSlot.swift`, `RingProfile.swift` with 80 tests |
-| Input | Planned | .gitkeep only |
-| Context | Planned | .gitkeep only |
-| Execution | Planned | .gitkeep only |
+| UI | ✅ **Complete** | RingGeometry, RingView, RingWindow, MenuBarIntegration |
+| Profile | ✅ **Complete** | RingAction, RingSlot, RingProfile |
+| Input | ✅ **Complete** | EventTapManager |
+| Context | ✅ **Complete** | AppDetector |
+| Execution | ✅ **Complete** | ActionExecutor |
 | AI | Planned | .gitkeep only |
 | MCP | Planned | .gitkeep only |
 | Semantic | Planned | .gitkeep only |
 | Storage | Planned | .gitkeep only |
 
-**Progress:** Core data models complete. Ready for Input/Context implementation.
+**Progress:** Phase 1 Foundation complete. Ready for Phase 2 (Context Awareness).
 
 ---
 
-## Layer Architecture
+## Architecture Layers
 
 ```
-+-----------------------------------------------------------------------+
-|  APP                     MacRingApp.swift | AppDelegate.swift       |  <- planned
-+-----------------------------------------------------------------------+
-|  UI                      RingGeometry.swift (COMPLETE)                  |
-|                          RingWindow | Configurator | MenuBar          |  <- planned
-+-----------------------------------------------------------------------+
-|  PROFILE                 RingProfile.swift (COMPLETE)                   |
-|                          RingSlot.swift (COMPLETE)                      |
-|                          RingAction.swift (COMPLETE)                    |
-+-----------------------------------------------------------------------+
-|  INPUT                   EventTapManager | KeyboardMonitor            |  <- planned
-|  CONTEXT                 ContextEngine | AppDetector | Fullscreen     |  <- planned
-|  EXECUTION               ActionExecutor | ScriptRunner | MCPAction     |  <- planned
-+-----------------------------------------------------------------------+
-|  AI                      AIService | BehaviorTracker | Suggestions    |  <- planned
-|  MCP                     MCPClient | Registry | ToolRunner             |  <- planned
-|  SEMANTIC                NLEmbedding | Clustering | PatternInterpreter  |  <- planned
-|  STORAGE                 GRDB Database | Keychain | VectorStore        |  <- planned
-+-----------------------------------------------------------------------+
-                       | HTTPS / stdio / SSE
-              Claude API  |  MCP Servers  |  smithery.ai
+┌─────────────────────────────────────────────────────────────┐
+│                    PRESENTATION LAYER                        │
+│  ┌────────────┐  ┌────────────┐  ┌────────────┐            │
+│  │ RingWindow │  │ RingView   │  │ MenuBar    │            │
+│  │ (NSPanel)  │  │ (SwiftUI)  │  │ Integration│            │
+│  │  ✅        │  │   ✅       │  │    ✅      │            │
+│  └────────────┘  └────────────┘  └────────────┘            │
+└─────────────────────────────────────────────────────────────┘
+                              ↕
+┌─────────────────────────────────────────────────────────────┐
+│                      CORE LOGIC LAYER                        │
+│  ┌────────────┐  ┌────────────┐  ┌────────────┐            │
+│  │ RingProfile│  │ RingSlot   │  │ RingAction │            │
+│  │   ✅       │  │    ✅      │  │  13 types  │            │
+│  └────────────┘  └────────────┘  └────────────┘            │
+│                                                              │
+│  ┌────────────┐  ┌────────────┐  ┌────────────┐            │
+│  │RingGeometry│  │AppDetector │  │Action      │            │
+│  │    ✅      │  │    ✅      │  │Executor ✅ │            │
+│  └────────────┘  └────────────┘  └────────────┘            │
+└─────────────────────────────────────────────────────────────┘
+                              ↕
+┌─────────────────────────────────────────────────────────────┐
+│                       INPUT LAYER                            │
+│  ┌──────────────────────────────────────────────┐           │
+│  │     EventTapManager (CGEventTap) ✅          │           │
+│  │     Universal mouse capture (any brand)      │           │
+│  └──────────────────────────────────────────────┘           │
+└─────────────────────────────────────────────────────────────┘
 ```
 
 ---
 
-## Three-Tier Intelligence Flow
+## Module Structure
 
 ```
-TIER 1: DISCOVERY (<500ms)          TIER 2: OBSERVATION (passive)       TIER 3: ADAPTATION (6h cycle)
-+---------------------------+       +---------------------------+       +---------------------------+
-| App switch detected       |       | BehaviorTracker records   |       | NLEmbedding vectorizes    |
-| Load profile from DB      |  -->  | ring interactions         |  -->  | action sequences          |
-| Query MCP registry        |       | KeyboardMonitor tracks    |       | k-NN clustering (k=5)    |
-| AI generates 6-8 actions  |       | modifier+key combos       |       | Haiku interprets clusters |
-| Ring populates            |       | Raw: 24h TTL, Agg: 90d   |       | User approves suggestions |
-+---------------------------+       +---------------------------+       +---------------------------+
+Sources/MacRingCore/
+├── Profile/                    ✅ COMPLETE
+│   ├── RingAction.swift        (13 action types, 283 lines)
+│   ├── RingSlot.swift          (Slot model, 85 lines)
+│   └── RingProfile.swift       (Profile model, 178 lines)
+│
+├── Input/                      ✅ COMPLETE
+│   └── EventTapManager.swift   (CGEventTap, 196 lines)
+│
+├── Context/                    ✅ COMPLETE
+│   └── AppDetector.swift       (App detection, 331 lines)
+│
+├── Execution/                  ✅ COMPLETE
+│   └── ActionExecutor.swift    (Execute actions, 315 lines)
+│
+└── UI/                         ✅ COMPLETE
+    ├── RingGeometry.swift      (Math for layout, 145 lines)
+    ├── RingView/
+    │   └── RingView.swift      (SwiftUI view, 174 lines)
+    ├── RingWindow.swift        (NSPanel, 147 lines)
+    └── MenuBarIntegration.swift (Menu bar, 143 lines)
+```
+
+---
+
+## Data Flow
+
+```
+1. EventTapManager detects mouse button hold
+   ↓
+2. AppDetector identifies current app (bundle ID)
+   ↓
+3. ProfileManager loads profile for app (planned)
+   ↓
+4. RingWindow appears at cursor position
+   ↓
+5. User selects slot (mouse movement)
+   ↓
+6. ActionExecutor executes selected action
 ```
 
 ---
@@ -71,8 +111,8 @@ TIER 1: DISCOVERY (<500ms)          TIER 2: OBSERVATION (passive)       TIER 3: 
 
 | Thread | QoS | Responsibility | Status |
 |--------|-----|----------------|--------|
-| Main | `.userInteractive` | SwiftUI rendering, user interaction | Planned |
-| EventTap | `.userInteractive` | `CGEventTap` callback | Planned |
+| Main | `.userInteractive` | SwiftUI rendering, user interaction | ✅ |
+| EventTap | `.userInteractive` | `CGEventTap` callback | ✅ |
 | AI Queue | `.utility` | Claude API calls | Planned |
 | MCP Queue | `.utility` | MCP tool execution | Planned |
 | Tracker Queue | `.background` | DB writes, usage recording | Planned |
@@ -80,30 +120,17 @@ TIER 1: DISCOVERY (<500ms)          TIER 2: OBSERVATION (passive)       TIER 3: 
 
 ---
 
-## Profile Lookup Chain
+## Technology Stack
 
-```
-1. Exact Bundle ID --> user profile OR built-in preset
-       | (miss)
-2. MCP Discovery   --> query registry for app-relevant servers
-       | (miss)
-3. App Category    --> category fallback (IDE, Browser, Design...)
-       | (miss)
-4. Default Profile --> universal fallback (always exists)
-```
-
----
-
-## External Integrations
-
-| Service | Protocol | Purpose | Auth | Status |
-|---------|----------|---------|------|--------|
-| Claude API (Haiku) | HTTPS | Suggestions, shortcut discovery, MCP selection | User API key | Planned |
-| Claude API (Sonnet) | HTTPS | Auto profile gen, NL config, workflow builder | User API key | Planned |
-| smithery.ai | HTTPS | MCP server registry (6,480+ servers) | None (public) | Planned |
-| MCP Servers (local) | stdio | GitHub, Filesystem, Docker, Postgres, Puppeteer | Per-server Keychain | Planned |
-| MCP Servers (remote) | HTTP/SSE | Slack, Notion, Linear, Brave Search | Per-server Keychain | Planned |
-| Sparkle 2.x | HTTPS | Auto-update (appcast XML, EdDSA) | None | Planned |
+| Component | Technology | Version |
+|-----------|-----------|---------|
+| Language | Swift | 5.10+ |
+| Platform | macOS | 14+ |
+| UI Framework | SwiftUI | 5.0+ |
+| Input Capture | CGEventTap | Quartz Framework |
+| App Detection | NSWorkspace | -- |
+| Build System | Swift Package Manager | 6.0 |
+| Test Framework | swift-testing | (Observation-based) |
 
 ---
 
@@ -111,63 +138,19 @@ TIER 1: DISCOVERY (<500ms)          TIER 2: OBSERVATION (passive)       TIER 3: 
 
 | # | Type | Data Structure | Status | Phase |
 |---|------|----------------|--------|-------|
-| 1 | `keyboardShortcut` | `KeyCode + [KeyModifier]` | **Implemented** | 1 |
-| 2 | `launchApplication` | `bundleIdentifier: String` | **Implemented** | 1 |
-| 3 | `openURL` | `String` | **Implemented** | 1 |
-| 4 | `systemAction` | `SystemAction` enum | **Implemented** | 1 |
-| 5 | `shellScript` | `String` | **Implemented** | 2 |
-| 6 | `appleScript` | `String` | **Implemented** | 2 |
-| 7 | `shortcutsApp` | `String` | **Implemented** | 3 |
-| 8 | `textSnippet` | `String` | **Implemented** | 3 |
-| 9 | `openFile` | `String` | **Implemented** | 3 |
-| 10 | `workflow` | `[RingAction]` | **Implemented** | 4 |
-| 11 | `mcpToolCall` | `MCPToolAction` struct | **Implemented** | 5 |
-| 12 | `mcpWorkflow` | `MCPWorkflowAction` struct | **Implemented** | 5 |
-
----
-
-## Technology Stack
-
-| Concern | Technology | Version |
-|---------|-----------|---------|
-| Language | Swift | 5.10+ (toolchain 6.0, language mode v5) |
-| UI | SwiftUI | 5.0+ (macOS 14+) |
-| Testing | Swift Testing | (Observation-based) |
-| Mouse capture | CGEventTap | Quartz Framework |
-| App detection | NSWorkspace + Accessibility API | -- |
-| Database | GRDB.swift | 6.x (planned) |
-| Vector store | SQLite BLOB | (planned) |
-| Embeddings | NaturalLanguage.framework | NLEmbedding (planned) |
-| Math | Accelerate.framework | vDSP (planned) |
-| AI | Claude API | (user key) |
-| MCP | mcp-swift-sdk | (planned) |
-| Secrets | Security.framework | Keychain (planned) |
-| Auto-update | Sparkle | 2.x (planned) |
-| Distribution | DMG + Homebrew Cask | (not App Store) |
-
----
-
-## Package Structure
-
-```
-G:\code\action_ring\
-├── Package.swift                   -- SPM manifest, macOS 14+ target
-├── Sources/
-│   └── MacRingCore/
-│       ├── Profile/
-│       │   ├── RingAction.swift    -- COMPLETE (283 lines)
-│       │   ├── RingSlot.swift      -- COMPLETE (85 lines)
-│       │   └── RingProfile.swift   -- COMPLETE (178 lines)
-│       └── UI/
-│           └── RingGeometry.swift  -- COMPLETE (145 lines)
-└── Tests/
-    └── MacRingCoreTests/
-        ├── Profile/
-        │   ├── RingActionTests.swift    -- 28 tests
-        │   ├── RingSlotTests.swift      -- 23 tests
-        │   └── RingProfileTests.swift   -- 29 tests
-        └── RingGeometryTests.swift      -- 30 tests
-```
+| 1 | `keyboardShortcut` | `KeyCode + [KeyModifier]` | ✅ Executable | 1 |
+| 2 | `launchApplication` | `bundleIdentifier: String` | ✅ Executable | 1 |
+| 3 | `openURL` | `String` | ✅ Executable | 1 |
+| 4 | `systemAction` | `SystemAction` enum | ✅ Executable | 1 |
+| 5 | `shellScript` | `String` | ⏳ Stub | 2 |
+| 6 | `appleScript` | `String` | ⏳ Stub | 2 |
+| 7 | `shortcutsApp` | `String` | ⏳ Stub | 3 |
+| 8 | `textSnippet` | `String` | ⏳ Stub | 3 |
+| 9 | `openFile` | `String` | ⏳ Stub | 3 |
+| 10 | `workflow` | `[RingAction]` | ✅ Executable | 4 |
+| 11 | `subRing` | `RingProfile` | Planned | Future |
+| 12 | `mcpToolCall` | `MCPToolAction` struct | ⏳ Stub | 5 |
+| 13 | `mcpWorkflow` | `MCPWorkflowAction` struct | ⏳ Stub | 5 |
 
 ---
 
@@ -175,8 +158,8 @@ G:\code\action_ring\
 
 | Phase | Weeks | Status | Deliverable |
 |-------|-------|--------|-------------|
-| 1 Foundation | 1-3 | **In progress** | Data models + RingGeometry |
-| 2 Context | 4-5 | Planned | App-switching profiles, 10+ presets |
+| 1 Foundation | 1-3 | ✅ **Complete** | Ring, mouse capture, menu bar |
+| 2 Context | 4-5 | Next | App-switching profiles, 10+ presets |
 | 3 Configurator | 6-8 | Planned | Visual drag-and-drop editor |
 | 4 AI | 9-12 | Planned | Smart suggestions, auto-profile, NL config |
 | 5 MCP | 13-15 | Planned | MCP client, discovery, tool execution |
@@ -200,34 +183,8 @@ G:\code\action_ring\
 
 ---
 
-## Data Flow (Planned)
-
-### Ring Trigger -> Action Execution
-```
-EventTapManager (otherMouseDown)
-  -> RingViewModel.show(at: cursorPosition)
-  -> ProfileManager.activeProfile
-  -> RingView renders slots
-  -> User moves to slot (RingGeometry.selectedSlot math)
-  -> EventTapManager (otherMouseUp)
-  -> ActionExecutor.execute(slot.action)
-```
-
-### App Switch -> Profile Update
-```
-AppDetector (NSWorkspace notification)
-  -> ContextEngine.handleAppSwitch(bundleId)
-  -> ProfileManager.lookup(bundleId)     -- 4-step chain
-  -> MCPRegistry.relevantServers(bundleId)
-  -> RingViewModel.updateProfile(newProfile)
-```
-
----
-
 ## Related Codemaps
 
 - [profile.md](profile.md) -- Profile system data models
 - [ui.md](ui.md) -- UI components and geometry
-- [data.md](data.md) -- Data models and storage schema
 - [core-layer.md](core-layer.md) -- Business logic modules
-- [app-layer.md](app-layer.md) -- UI and entry points

@@ -1,7 +1,7 @@
-<!-- Updated: 2025-02-20 -->
 # MacRing -- Data Models & Storage Codemap
 
-> Status: **Phase 1 (Foundation)** -- Core models implemented, storage layer planned
+> **Last Updated:** 2026-02-21
+> **Status:** Phase 1 Complete
 
 ---
 
@@ -119,6 +119,100 @@ public enum RingSize {
 
 ---
 
+## New Models (Phase 1)
+
+### EventTapManager Models (Input/EventTapManager.swift -- 196 lines)
+
+```swift
+public enum EventTapEventType: Sendable {
+    case down, up, drag, cancel
+}
+
+public enum EventTapAction: Sendable {
+    case passEvent, suppress
+}
+
+public final class EventTapManager: @unchecked Sendable {
+    public let buttonNumber: Int     // 0-31
+    public var isEnabled: Bool
+    public var onEvent: ((EventTapEventType) -> EventTapAction)?
+}
+```
+
+---
+
+### AppDetector Models (Context/AppDetector.swift -- 331 lines)
+
+```swift
+public struct RunningApp: Sendable {
+    let bundleIdentifier: String
+    let appName: String
+    let processIdentifier: pid_t
+}
+
+public final class AppDetector {
+    // 100+ bundle ID -> category mappings
+    // Monitoring callbacks with UUID tokens
+}
+```
+
+---
+
+### ActionExecutor Models (Execution/ActionExecutor.swift -- 315 lines)
+
+```swift
+public enum ActionExecutorError: Error, Sendable {
+    case notImplemented
+    case appNotFound(bundleId: String)
+    case invalidUrl(url: String)
+    case executionFailed(reason: String)
+}
+
+public enum ActionExecutorResult: Sendable {
+    case success
+    case failure(ActionExecutorError)
+}
+
+public final class ActionExecutor {
+    public func execute(_ action: RingAction) async -> ActionExecutorResult
+}
+```
+
+---
+
+### UI Models (Phase 1)
+
+**RingView (UI/RingView/RingView.swift -- 174 lines)**
+- SwiftUI view with bindings for selectedSlot, hoveredSlot, isVisible
+
+**RingWindow (UI/RingWindow.swift -- 147 lines)**
+```swift
+public final class RingWindow: NSPanel {
+    public var selectedSlot: Int?
+    public var hoveredSlot: Int?
+    public func show(at: CGPoint?)
+    public func hide()
+}
+```
+
+**MenuBarIntegration (UI/MenuBarIntegration.swift -- 143 lines)**
+```swift
+public protocol MenuBarDelegate: AnyObject {
+    func menuBarDidRequestOpenConfigurator()
+    func menuBarDidRequestQuit()
+    func menuBarDidToggleRing()
+    func menuBarDidRequestHelp()
+}
+
+public final class MenuBarIntegration {
+    public func showTooltip(_:for:)
+    public func updateMenuState(isRingEnabled:)
+    public func updateCurrentProfile(_:)
+}
+```
+
+---
+
 ## Planned Models (Not Yet Created)
 
 ### Behavior & AI Models
@@ -138,13 +232,6 @@ public enum RingSize {
 | `MCPServer` | id, packageName, transport, isEnabled, autoStart, categories, status | Server configuration |
 | `MCPTool` | id (`{serverId}.{toolName}`), serverId, toolName, description, parameters | Discovered tools |
 | `MouseTrigger` | buttonIndex (0-31), holdDurationMs (default 200) | Trigger configuration |
-
-### Context Models
-
-| Model | Key Fields | Purpose |
-|-------|-----------|---------|
-| `AppContext` | bundleId, processId, windowTitle*, isFullscreen | Current app state |
-| `CategoryMapping` | bundleId, category, confidence | Bundle ID -> category lookup |
 
 ---
 
@@ -197,16 +284,6 @@ public enum RingSize {
 
 ---
 
-## Codable Implementation
-
-All implemented types are fully `Codable`:
-- `RingAction`: Custom `KeyCode` encoding with type discriminator
-- `RingSlot`: Auto-synthesized
-- `RingProfile`: Auto-synthesized
-- `RingGeometry`: Not `Codable` (runtime-only computation)
-
----
-
 ## Test Coverage
 
 | Model | Tests | Status |
@@ -225,3 +302,4 @@ All implemented types are fully `Codable`:
 - [profile.md](profile.md) -- Profile system details
 - [ui.md](ui.md) -- UI geometry details
 - [architecture.md](architecture.md) -- Overall system architecture
+- [core-layer.md](core-layer.md) -- Business logic modules

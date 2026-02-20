@@ -1,64 +1,83 @@
-CODEMAP UPDATE REPORT
-======================
-Timestamp: 2026-02-20
-Type: Update (previous version: 2026-02-20 initial generation)
-Source: Package.swift, Sources/MacRingCore/**, Tests/MacRingCoreTests/**, CLAUDE.md
-Previous status: Pre-development (planning phase)
-Current status: Phase 1 (Foundation) -- in progress
+MacRing Codemap Diff Report
+Generated: 2026-02-21
+=====================================
 
-FILES UPDATED
--------------
-codemaps/architecture.md   158 -> 157 lines   Added implementation status table, phase status markers
-codemaps/core-layer.md     221 -> 195 lines   Split into Implemented vs Planned sections, added test inventory
-codemaps/app-layer.md      172 -> 141 lines   Marked RingGeometry as scaffold, clarified planned vs actual
-codemaps/data.md           203 -> 172 lines   Added RingGeometry/RingSize as implemented, marked rest planned
+SUMMARY: Phase 1 Foundation Complete - All codemaps updated
 
-TOTAL: 4 files updated
+UPDATED FILES:
+✓ codemaps/architecture.md    - Updated with Phase 1 complete status
+✓ codemaps/ui.md               - Updated with new UI components
+✓ codemaps/core-layer.md       - Updated with Input/Context/Execution modules
+✓ codemaps/data.md             - Updated with new data models
+✓ codemaps/profile.md          - No changes needed (already current)
 
-CHANGES SUMMARY
----------------
+CHANGES OVERVIEW:
 
-1. STATUS UPGRADE
-   - All files: "Pre-development (planning phase)" -> "Phase 1 (Foundation)"
-   - architecture.md: Development phases table now shows Phase 1 as "In progress"
-   - All files: Added freshness timestamp comment <!-- Updated: 2026-02-20 -->
+PREVIOUS STATE (2025-02-20):
+- Source files: 4 (Profile: 3, UI: 1)
+- Source lines: ~606
+- Test files: 4
+- Test lines: ~500
+- Status: "Core models complete, ready for Input/Context implementation"
 
-2. IMPLEMENTED CODE TRACKED
-   - NEW: RingGeometry.swift documented as scaffold (fatalError stubs)
-     - 2 types: RingGeometry struct, RingSize enum
-     - 6 methods/properties, all fatalError stubs
-     - Imports: Foundation, CoreGraphics
-   - NEW: RingGeometryTests.swift documented (30 tests)
-     - 11 test groups covering geometry, dead zone, slot selection, edge cases
-     - Framework: Swift Testing (@Suite, @Test, #expect)
-   - NEW: Package.swift details captured
-     - swift-tools-version: 6.0, language mode: v5, macOS 14+
+CURRENT STATE (2026-02-21):
+- Source files: 10 (Profile: 3, UI: 4, Input: 1, Context: 1, Execution: 1)
+- Source lines: 2123 (+250%)
+- Test files: 7 (+3 new)
+- Test lines: 1723 (+244%)
+- Status: "Phase 1 Foundation COMPLETE"
 
-3. STRUCTURAL CHANGES
-   - core-layer.md: Split from single planned list into "Implemented" + "Planned" sections
-   - core-layer.md: Added actual directory tree showing .gitkeep files
-   - app-layer.md: Added "Actual File Status" table at top
-   - data.md: RingGeometry and RingSize moved to "Implemented Models" section
+NEW MODULES IMPLEMENTED:
+1. Input/EventTapManager.swift (196 lines)
+   - CGEventTap for universal mouse capture
+   - Works with ANY mouse brand (Logitech, Razer, etc.)
+   - Accessibility permission handling
 
-4. TECHNOLOGY STACK CORRECTION
-   - architecture.md: Swift version clarified as "5.10+ (toolchain 6.0, language mode v5)"
-     Previously listed as "Swift 5.10+" without toolchain detail
+2. Context/AppDetector.swift (331 lines)
+   - App detection via NSWorkspace
+   - 100+ bundle ID -> category mappings
+   - App switch monitoring
+   - Fullscreen detection
 
-5. NO CONTENT REMOVED
-   - All planned file listings retained (Input, Context, Profile, Execution, AI, MCP, Semantic, Storage)
-   - All data flows, thread architecture, performance targets unchanged
-   - Privacy constraints, Keychain map, DB schema unchanged
+3. Execution/ActionExecutor.swift (315 lines)
+   - Execute keyboard shortcuts (CGEvent)
+   - Launch applications (NSWorkspace)
+   - Open URLs
+   - System actions
+   - Workflow support
 
-SOURCE FILES READ
------------------
-Package.swift                                  33 lines
-Sources/MacRingCore/UI/RingGeometry.swift       54 lines
-Tests/MacRingCoreTests/RingGeometryTests.swift 251 lines
-CLAUDE.md                                      (referenced for architecture)
+4. UI/RingView/RingView.swift (174 lines)
+   - SwiftUI ring rendering
+   - 8 slots with icons/labels
+   - Hover and selection states
+   - Spring animations
 
-NEXT UPDATE TRIGGERS
---------------------
-- RingGeometry.swift fatalError stubs replaced with implementations
-- EventTapManager.swift created (CGEventTap mouse capture)
-- Any new .swift file added to Sources/ or Tests/
-- Package.swift dependencies added (GRDB, mcp-swift-sdk, etc.)
+5. UI/RingWindow.swift (147 lines)
+   - NSPanel floating window
+   - Non-activating, follows cursor
+   - Mouse tracking for slot selection
+
+6. UI/MenuBarIntegration.swift (143 lines)
+   - Menu bar icon and menu
+   - Delegate protocol for actions
+   - Tooltip support
+
+NEW TEST FILES:
+1. Tests/Input/EventTapManagerTests.swift
+2. Tests/Context/AppDetectorTests.swift
+3. Tests/Execution/ActionExecutorTests.swift
+
+PHASE 1 DELIVERABLES vs PRD:
+| PRD Requirement | Status |
+|-----------------|--------|
+| Ring appears → select → executes | ✅ Complete |
+| Universal mouse support | ✅ CGEventTap (any brand) |
+| Menu bar | ✅ MenuBarIntegration |
+| Action execution | ✅ ActionExecutor |
+| App detection | ✅ AppDetector |
+
+READY FOR PHASE 2: Context Awareness
+- ProfileManager (load/save profiles)
+- BuiltInProfiles (10 app presets)
+- FullscreenDetector integration
+- Auto profile switching
