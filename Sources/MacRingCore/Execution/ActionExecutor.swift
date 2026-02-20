@@ -3,6 +3,30 @@ import Foundation
 import AppKit
 import Carbon
 
+// MARK: - Script Execution Options
+
+/// Options for script execution
+public struct ScriptExecutionOptions: Sendable {
+    /// Timeout in seconds (default: 30)
+    public var timeout: TimeInterval
+
+    /// Working directory for script execution
+    public var workingDirectory: String?
+
+    /// Environment variables to pass to scripts
+    public var environment: [String: String]?
+
+    public init(
+        timeout: TimeInterval = 30,
+        workingDirectory: String? = nil,
+        environment: [String: String]? = nil
+    ) {
+        self.timeout = timeout
+        self.workingDirectory = workingDirectory
+        self.environment = environment
+    }
+}
+
 // MARK: - Action Executor Error
 
 /// Errors that can occur during action execution
@@ -12,6 +36,8 @@ public enum ActionExecutorError: Error, Equatable, Sendable {
     case invalidUrl(url: String)
     case executionFailed(reason: String)
     case systemActionNotSupported(action: String)
+    case scriptValidationFailed(reason: String)
+    case scriptTimeout
 }
 
 // MARK: - Execution Result
@@ -33,8 +59,26 @@ public enum ActionExecutorResult: Sendable {
 
 // MARK: - Action Executor
 
-/// Executes ring actions: keyboard shortcuts, app launches, URLs, system actions
+/// Executes ring actions: keyboard shortcuts, app launches, URLs, system actions, scripts
 public final class ActionExecutor {
+
+    // MARK: - Properties
+
+    private let scriptRunner: ScriptRunner
+    private let scriptOptions: ScriptExecutionOptions
+
+    // MARK: - Initializers
+
+    public init(scriptOptions: ScriptExecutionOptions = ScriptExecutionOptions()) {
+        self.scriptOptions = scriptOptions
+        self.scriptRunner = ScriptRunner(
+            timeout: scriptOptions.timeout,
+            workingDirectory: scriptOptions.workingDirectory,
+            environment: scriptOptions.environment
+        )
+    }
+
+    // MARK: - Execute Action
 
     // MARK: - Execute Action
 
@@ -55,11 +99,133 @@ public final class ActionExecutor {
         case .systemAction(let systemAction):
             await executeSystemAction(systemAction)
 
-        case .shellScript, .appleScript, .shortcutsApp, .textSnippet, .openFile, .workflow:
-            return .failure(.notImplemented)
+        case .shellScript(let script):
+            await executeShellScript(script)
+
+        case .appleScript(let script):
+            await executeAppleScript(script)
+
+        case .shortcutsApp(let shortcutName):
+            await executeShortcutsApp(shortcutName)
+
+        case .textSnippet(let text):
+            await executeTextSnippet(text)
+
+        case .openFile(let path):
+            await openFile(path)
+
+        case .workflow(let actions):
+            await executeWorkflow(actions)
 
         case .mcpToolCall, .mcpWorkflow:
             return .failure(.notImplemented)
+        }
+    }
+
+    // MARK: - Shell Scripts
+
+    private func executeShellScript(_ script: String) async -> ActionExecutorResult {
+        // Validate script first
+        let validation = await scriptRunner.validateShellScript(script)
+        guard validation.isValid else {
+            return .failure(.scriptValidationFailed(reason: validation.error))
+        }
+
+        // Execute script
+        let result = await scriptRunner.runShell(script: script)
+
+        if result.didTimeout {
+            return .failure(.scriptTimeout)
+        }
+
+        if result.isSuccess {
+            return .success
+        } else {
+            return .failure(.executionFailed(reason: result.error.isEmpty ? "Script failed with exit code \(result.exitCode)" : result.error))
+        }
+    }
+
+    // MARK: - AppleScript
+
+    private func executeAppleScript(_ script: String) async -> ActionExecutorResult {
+        let result = await scriptRunner.runAppleScript(script: script)
+
+        if result.didTimeout {
+            return .failure(.scriptTimeout)
+        }
+
+        if result.isSuccess {
+            return .success
+        } else {
+            return .failure(.executionFailed(reason: result.error.isEmpty ? "AppleScript failed" : result.error))
+        }
+    }
+
+    // MARK: - Shortcuts App
+
+    private func executeShortcutsApp(_ shortcutName: String) async -> ActionExecutorResult {
+        let script = """
+        tell application "Shortcuts Events"
+            run the shortcut named "\(shortcutName.replacingOccurrences(of: "\"", with: "\\\""))"
+        end tell
+        """
+
+        return await executeAppleScript(script)
+    }
+
+    // MARK: - Text Snippet
+
+    private func executeTextSnippet(_ text: String) async -> ActionExecutorResult {
+        // Type the text character by character using keyboard events
+        guard let source = CGEventSource(stateID: .hidSystemState) else {
+            return .failure(.executionFailed(reason: "Failed to create event source"))
+        }
+
+        for character in text {
+            let keyDown = CGEvent(keyboardEventSource: source, virtualKey: 0, keyDown: true)
+            let keyUp = CGEvent(keyboardEventSource: source, virtualKey: 0, keyDown: false)
+
+            guard let keyDownEvent = keyDown, let keyUpEvent = keyUp else {
+                return .failure(.executionFailed(reason: "Failed to create keyboard events"))
+            }
+
+            // Get key code for this character
+            let keyCode = getVirtualKeyCode(for: .character(character))
+
+            keyDownEvent.setIntegerValueField(.keyboardEventKeycode, value: keyCode)
+            keyUpEvent.setIntegerValueField(.keyboardEventKeycode, value: keyCode)
+
+            // Handle shift for uppercase
+            if character.isUppercase {
+                keyDownEvent.flags.insert(.maskShift)
+                keyUpEvent.flags.insert(.maskShift)
+            }
+
+            keyDownEvent.post(tap: .cghidEventTap)
+            keyUpEvent.post(tap: .cghidEventTap)
+
+            // Small delay between keystrokes for natural typing
+            try? await Task.sleep(nanoseconds: 10_000_000)  // 10ms
+        }
+
+        return .success
+    }
+
+    // MARK: - Open File
+
+    private func openFile(_ path: String) async -> ActionExecutorResult {
+        let fileURL = URL(fileURLWithPath: path)
+
+        // Check if file exists
+        guard FileManager.default.fileExists(atPath: path) else {
+            return .failure(.executionFailed(reason: "File not found: \(path)"))
+        }
+
+        let workspace = NSWorkspace.shared
+        if workspace.open(fileURL) {
+            return .success
+        } else {
+            return .failure(.executionFailed(reason: "Failed to open file: \(path)"))
         }
     }
 
@@ -321,6 +487,26 @@ public final class ActionExecutor {
 
     /// Execute a workflow (sequence of actions)
     public func executeWorkflow(_ actions: [RingAction]) async -> ActionExecutorResult {
+        for action in actions {
+            let result = await execute(action)
+
+            // Handle nested workflows
+            if case .workflow(let nestedActions) = action {
+                let nestedResult = await executeWorkflow(nestedActions)
+                if case .failure(let error) = nestedResult {
+                    return .failure(error)
+                }
+            } else {
+                // Check if this action failed
+                if case .failure(let error) = result {
+                    return .failure(error)
+                }
+            }
+        }
+        return .success
+    }
+
+    private func executeWorkflow(_ actions: [RingAction]) async -> ActionExecutorResult {
         for action in actions {
             let result = await execute(action)
             if case .failure(let error) = result {
