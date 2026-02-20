@@ -1,0 +1,32 @@
+CODEMAP GENERATION REPORT
+=========================
+Timestamp: 2026-02-20
+Type: Initial generation (no previous version to diff)
+Source: MacRing PRD v2.0.0, plan.md, CLAUDE.md, docs/*.md
+Status: Pre-development (planning phase)
+
+FILES CREATED
+-------------
+codemaps/architecture.md   157 lines   System architecture, layers, threads, integrations
+codemaps/app-layer.md      172 lines   UI structure, windows, ring geometry, navigation
+codemaps/core-layer.md     221 lines   Business logic: Input, Context, Profile, Execution, AI, MCP, Semantic
+codemaps/data.md           203 lines   Data models, DB schema, Keychain map, privacy constraints
+
+TOTAL: 4 files, 753 lines
+
+SOURCE DOCUMENTS READ
+---------------------
+CLAUDE.md                  214 lines
+plan.md                    488 lines
+docs/architecture.md       198 lines
+docs/data-models.md        308 lines
+docs/mcp-servers.md        216 lines
+docs/testing.md            325 lines
+docs/prompts.md            239 lines
+
+NOTES
+-----
+- No previous codemaps existed; this is the initial generation
+- All content derived from planning documents (no Swift source files exist yet)
+- Codemaps will need regeneration once implementation begins
+- Next update trigger: Phase 1 scaffold (project creation + first Swift files)
