@@ -1,0 +1,112 @@
+# SwiftLint Configuration for MacRing
+# Based on Swift 6.0, macOS 14+ target
+
+# Disabled rules (customize as needed)
+disabled_rules:
+  - trailing_whitespace
+  - todo
+
+# Opt-in rules
+opt_in_rules:
+  - explicit_init
+  - explicit_type_interface
+  - fatal_error_message
+  - force_unwrapping
+  - implicitly_unwrapped_optional
+  - overridden_super_call
+  - prohibited_interface_builder
+  - redundant_nil_coalescing
+  - strict_fileprivate
+  - unneeded_parentheses_in_closure_argument
+
+# Included paths
+included:
+  - Sources
+  - Tests
+
+# Excluded paths
+excluded:
+  - .build
+  - Pods
+  - .swiftpm
+
+# Line length
+line_length:
+  warning: 120
+  error: 200
+  ignores_function_declarations: true
+  ignores_comments: true
+  ignores_urls: true
+
+# File length
+file_length:
+  warning: 500
+  error: 800
+
+# Function body length
+function_body_length:
+  warning: 50
+  error: 100
+
+# Type body length
+type_body_length:
+  warning: 300
+  error: 800
+
+# Cyclomatic complexity
+cyclomatic_complexity:
+  warning: 10
+  error: 20
+
+# Nesting depth
+nesting:
+  type_level:
+    warning: 2
+  statement_level:
+    warning: 5
+
+# Identifier naming
+identifier_name:
+  min_length:
+    warning: 2
+  max_length:
+    warning: 40
+    error: 50
+  excluded:
+    - id
+    - url
+    - URL
+    - x
+    - y
+    - dx
+    - dy
+    - db
+
+# Custom rules for MacRing
+
+custom_rules:
+  # Avoid print statements in production code
+  no_print:
+    name: "No Print Statements"
+    regex: '\bprint\('
+    match_kinds:
+      - identifier
+    message: "Use proper logging instead of print()"
+    severity: warning
+
+  # Discourage force unwraps
+  discourage_force_unwrap:
+    name: "Discourage Force Unwrap"
+    regex: '!'
+    match_kinds:
+      - forceunwrappoperator
+    message: "Avoid force unwrapping, use optional binding"
+    severity: warning
+
+# Analyzer rules
+analyzer_rules:
+  - unused_declaration
+  - unused_import
+
+# Reporter (xcode, json, csv, checkstyle, codeclimate, html, markdown, junit)
+reporter: "xcode"

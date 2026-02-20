@@ -1,7 +1,7 @@
-<!-- Updated: 2026-02-20 -->
+<!-- Updated: 2025-02-20 -->
 # MacRing -- System Architecture Codemap
 
-> Status: **Phase 1 (Foundation)** -- Weeks 1-3 | SPM scaffold + RingGeometry stub + 30 tests
+> Status: **Phase 1 (Foundation)** -- Profile and UI models implemented, testing infrastructure in place
 
 ---
 
@@ -10,37 +10,42 @@
 | Layer | Status | Files |
 |-------|--------|-------|
 | App | Planned | .gitkeep only |
-| UI | Scaffold | `RingGeometry.swift` (fatalError stubs) |
-| Core (Input, Context, Profile, Execution) | Planned | .gitkeep only |
+| UI | **Implemented** | `RingGeometry.swift` complete with 30 tests |
+| Profile | **Implemented** | `RingAction.swift`, `RingSlot.swift`, `RingProfile.swift` with 80 tests |
+| Input | Planned | .gitkeep only |
+| Context | Planned | .gitkeep only |
+| Execution | Planned | .gitkeep only |
 | AI | Planned | .gitkeep only |
 | MCP | Planned | .gitkeep only |
 | Semantic | Planned | .gitkeep only |
 | Storage | Planned | .gitkeep only |
-| Tests | Partial | `RingGeometryTests.swift` (30 tests, Swift Testing) |
-| Package.swift | Done | SPM, macOS 14+, Swift 6.0 toolchain, v5 language mode |
+
+**Progress:** Core data models complete. Ready for Input/Context implementation.
 
 ---
 
-## Layer Diagram
+## Layer Architecture
 
 ```
-+---------------------------------------------------------------+
-|  APP          MacRingApp.swift | AppDelegate.swift             |  <- planned
-+---------------------------------------------------------------+
-|  UI           RingWindow | Configurator | MenuBar | Onboarding|  <- RingGeometry stub exists
-+---------------------------------------------------------------+
-|  CORE         ProfileManager | ContextEngine | ActionExecutor  |  <- planned
-+---------------------------------------------------------------+
-|  AI           AIService | SuggestionManager | BehaviorTracker  |  <- planned
-+---------------------------------------------------------------+
-|  MCP          MCPClient | MCPRegistry | MCPToolRunner          |  <- planned
-+---------------------------------------------------------------+
-|  SEMANTIC     NLEmbeddingEngine | BehaviorClusterer            |  <- planned
-+---------------------------------------------------------------+
-|  INPUT        EventTapManager | KeyboardMonitor | AppDetector  |  <- planned
-+---------------------------------------------------------------+
-|  STORAGE      SQLite (GRDB) | Keychain | VectorDB (BLOB)      |  <- planned
-+---------------------------------------------------------------+
++-----------------------------------------------------------------------+
+|  APP                     MacRingApp.swift | AppDelegate.swift       |  <- planned
++-----------------------------------------------------------------------+
+|  UI                      RingGeometry.swift (COMPLETE)                  |
+|                          RingWindow | Configurator | MenuBar          |  <- planned
++-----------------------------------------------------------------------+
+|  PROFILE                 RingProfile.swift (COMPLETE)                   |
+|                          RingSlot.swift (COMPLETE)                      |
+|                          RingAction.swift (COMPLETE)                    |
++-----------------------------------------------------------------------+
+|  INPUT                   EventTapManager | KeyboardMonitor            |  <- planned
+|  CONTEXT                 ContextEngine | AppDetector | Fullscreen     |  <- planned
+|  EXECUTION               ActionExecutor | ScriptRunner | MCPAction     |  <- planned
++-----------------------------------------------------------------------+
+|  AI                      AIService | BehaviorTracker | Suggestions    |  <- planned
+|  MCP                     MCPClient | Registry | ToolRunner             |  <- planned
+|  SEMANTIC                NLEmbedding | Clustering | PatternInterpreter  |  <- planned
+|  STORAGE                 GRDB Database | Keychain | VectorStore        |  <- planned
++-----------------------------------------------------------------------+
                        | HTTPS / stdio / SSE
               Claude API  |  MCP Servers  |  smithery.ai
 ```
@@ -64,14 +69,14 @@ TIER 1: DISCOVERY (<500ms)          TIER 2: OBSERVATION (passive)       TIER 3: 
 
 ## Thread Architecture
 
-| Thread | QoS | Responsibility | Latency Budget |
-|--------|-----|----------------|---------------|
-| Main | `.userInteractive` | SwiftUI rendering, user interaction | 16ms (60fps) |
-| EventTap | `.userInteractive` | `CGEventTap` callback | <5ms |
-| AI Queue | `.utility` | Claude API calls | Unbounded (network) |
-| MCP Queue | `.utility` | MCP tool execution | <3s timeout |
-| Tracker Queue | `.background` | DB writes, usage recording | Best-effort |
-| Semantic Queue | `.background` | Embedding generation, clustering | <500ms |
+| Thread | QoS | Responsibility | Status |
+|--------|-----|----------------|--------|
+| Main | `.userInteractive` | SwiftUI rendering, user interaction | Planned |
+| EventTap | `.userInteractive` | `CGEventTap` callback | Planned |
+| AI Queue | `.utility` | Claude API calls | Planned |
+| MCP Queue | `.utility` | MCP tool execution | Planned |
+| Tracker Queue | `.background` | DB writes, usage recording | Planned |
+| Semantic Queue | `.background` | Embedding generation, clustering | Planned |
 
 ---
 
@@ -91,72 +96,78 @@ TIER 1: DISCOVERY (<500ms)          TIER 2: OBSERVATION (passive)       TIER 3: 
 
 ## External Integrations
 
-| Service | Protocol | Purpose | Auth |
-|---------|----------|---------|------|
-| Claude API (Haiku) | HTTPS | Suggestions, shortcut discovery, MCP selection | User API key |
-| Claude API (Sonnet) | HTTPS | Auto profile gen, NL config, workflow builder | User API key |
-| smithery.ai | HTTPS | MCP server registry (6,480+ servers) | None (public) |
-| MCP Servers (local) | stdio | GitHub, Filesystem, Docker, Postgres, Puppeteer | Per-server Keychain |
-| MCP Servers (remote) | HTTP/SSE | Slack, Notion, Linear, Brave Search | Per-server Keychain |
-| Sparkle 2.x | HTTPS | Auto-update (appcast XML, EdDSA) | None |
+| Service | Protocol | Purpose | Auth | Status |
+|---------|----------|---------|------|--------|
+| Claude API (Haiku) | HTTPS | Suggestions, shortcut discovery, MCP selection | User API key | Planned |
+| Claude API (Sonnet) | HTTPS | Auto profile gen, NL config, workflow builder | User API key | Planned |
+| smithery.ai | HTTPS | MCP server registry (6,480+ servers) | None (public) | Planned |
+| MCP Servers (local) | stdio | GitHub, Filesystem, Docker, Postgres, Puppeteer | Per-server Keychain | Planned |
+| MCP Servers (remote) | HTTP/SSE | Slack, Notion, Linear, Brave Search | Per-server Keychain | Planned |
+| Sparkle 2.x | HTTPS | Auto-update (appcast XML, EdDSA) | None | Planned |
 
 ---
 
 ## Action Types (13)
 
-| # | Type | Execution Method | Phase |
-|---|------|-----------------|-------|
-| 1 | `keyboardShortcut` | CGEvent keyDown/keyUp | 1 |
-| 2 | `launchApplication` | NSWorkspace.open | 1 |
-| 3 | `openURL` | NSWorkspace.open(URL) | 1 |
-| 4 | `systemAction` | CGSession / NSWorkspace | 1 |
-| 5 | `shellScript` | Process (bash/zsh), 10s timeout | 2 |
-| 6 | `appleScript` | NSAppleScript | 2 |
-| 7 | `shortcutsApp` | Shortcuts.app workflow | 3 |
-| 8 | `textSnippet` | Paste text | 3 |
-| 9 | `openFileFolder` | NSWorkspace.activateFileViewerSelecting | 3 |
-| 10 | `workflow` | WorkflowRunner (multi-step) | 4 |
-| 11 | `subRing` | Nested ring (v1.1) | 7 |
-| 12 | `mcpToolCall` | MCPClient -> MCP server | 5 |
-| 13 | `mcpWorkflow` | MCPWorkflowRunner (chained) | 5 |
-
----
-
-## Performance Targets
-
-| Metric | Target |
-|--------|--------|
-| Ring appearance | <50ms P99 |
-| Ring frame rate | 60fps (16ms) |
-| Slot selection | <5ms |
-| Local action execution | <20ms |
-| Context switch detection | <10ms |
-| MCP tool execution | <3s |
-| MCP discovery | <500ms |
-| Embedding generation | <200ms/sequence |
-| Clustering (100 vectors) | <500ms |
-| Memory (idle / active) | <35MB / <55MB |
-| CPU (idle) | <0.1% |
+| # | Type | Data Structure | Status | Phase |
+|---|------|----------------|--------|-------|
+| 1 | `keyboardShortcut` | `KeyCode + [KeyModifier]` | **Implemented** | 1 |
+| 2 | `launchApplication` | `bundleIdentifier: String` | **Implemented** | 1 |
+| 3 | `openURL` | `String` | **Implemented** | 1 |
+| 4 | `systemAction` | `SystemAction` enum | **Implemented** | 1 |
+| 5 | `shellScript` | `String` | **Implemented** | 2 |
+| 6 | `appleScript` | `String` | **Implemented** | 2 |
+| 7 | `shortcutsApp` | `String` | **Implemented** | 3 |
+| 8 | `textSnippet` | `String` | **Implemented** | 3 |
+| 9 | `openFile` | `String` | **Implemented** | 3 |
+| 10 | `workflow` | `[RingAction]` | **Implemented** | 4 |
+| 11 | `mcpToolCall` | `MCPToolAction` struct | **Implemented** | 5 |
+| 12 | `mcpWorkflow` | `MCPWorkflowAction` struct | **Implemented** | 5 |
 
 ---
 
 ## Technology Stack
 
-| Concern | Technology |
-|---------|-----------|
-| Language | Swift 5.10+ (toolchain 6.0, language mode v5) |
-| UI | SwiftUI 5.0+ (macOS 14+) |
-| Mouse capture | CGEventTap (Quartz) -- all brands |
-| App detection | NSWorkspace + Accessibility API |
-| Database | GRDB.swift 6.x (SQLite, WAL mode) |
-| Vector store | SQLite BLOB |
-| Embeddings | NaturalLanguage.framework (NLEmbedding) |
-| Math | Accelerate.framework (vDSP) |
-| AI | Claude API (user-supplied key) |
-| MCP | mcp-swift-sdk |
-| Secrets | Security.framework Keychain |
-| Auto-update | Sparkle 2.x |
-| Distribution | DMG + Homebrew Cask (not App Store) |
+| Concern | Technology | Version |
+|---------|-----------|---------|
+| Language | Swift | 5.10+ (toolchain 6.0, language mode v5) |
+| UI | SwiftUI | 5.0+ (macOS 14+) |
+| Testing | Swift Testing | (Observation-based) |
+| Mouse capture | CGEventTap | Quartz Framework |
+| App detection | NSWorkspace + Accessibility API | -- |
+| Database | GRDB.swift | 6.x (planned) |
+| Vector store | SQLite BLOB | (planned) |
+| Embeddings | NaturalLanguage.framework | NLEmbedding (planned) |
+| Math | Accelerate.framework | vDSP (planned) |
+| AI | Claude API | (user key) |
+| MCP | mcp-swift-sdk | (planned) |
+| Secrets | Security.framework | Keychain (planned) |
+| Auto-update | Sparkle | 2.x (planned) |
+| Distribution | DMG + Homebrew Cask | (not App Store) |
+
+---
+
+## Package Structure
+
+```
+G:\code\action_ring\
+├── Package.swift                   -- SPM manifest, macOS 14+ target
+├── Sources/
+│   └── MacRingCore/
+│       ├── Profile/
+│       │   ├── RingAction.swift    -- COMPLETE (283 lines)
+│       │   ├── RingSlot.swift      -- COMPLETE (85 lines)
+│       │   └── RingProfile.swift   -- COMPLETE (178 lines)
+│       └── UI/
+│           └── RingGeometry.swift  -- COMPLETE (145 lines)
+└── Tests/
+    └── MacRingCoreTests/
+        ├── Profile/
+        │   ├── RingActionTests.swift    -- 28 tests
+        │   ├── RingSlotTests.swift      -- 23 tests
+        │   └── RingProfileTests.swift   -- 29 tests
+        └── RingGeometryTests.swift      -- 30 tests
+```
 
 ---
 
@@ -164,10 +175,59 @@ TIER 1: DISCOVERY (<500ms)          TIER 2: OBSERVATION (passive)       TIER 3: 
 
 | Phase | Weeks | Status | Deliverable |
 |-------|-------|--------|-------------|
-| 1 Foundation | 1-3 | **In progress** | Ring + CGEventTap + menu bar |
-| 2 Context | 4-5 | Planned | App-switching profiles, 10+ presets --> **MVP** |
+| 1 Foundation | 1-3 | **In progress** | Data models + RingGeometry |
+| 2 Context | 4-5 | Planned | App-switching profiles, 10+ presets |
 | 3 Configurator | 6-8 | Planned | Visual drag-and-drop editor |
 | 4 AI | 9-12 | Planned | Smart suggestions, auto-profile, NL config |
 | 5 MCP | 13-15 | Planned | MCP client, discovery, tool execution |
 | 6 Semantic | 16 | Planned | On-device embeddings, clustering |
 | 7 Polish | 17-18 | Planned | Onboarding, code signing, DMG, Sparkle |
+
+---
+
+## Performance Targets
+
+| Metric | Target | Notes |
+|--------|--------|-------|
+| Ring appearance | <50ms P99 | SwiftUI render |
+| Ring frame rate | 60fps (16ms) | Core Animation |
+| Slot selection | <5ms | Geometry math |
+| Context switch detection | <10ms | NSWorkspace notification |
+| Local action execution | <20ms | CGEvent simulation |
+| MCP tool execution | <3s | Timeout enforced |
+| Memory (idle / active) | <35MB / <55MB | Leaks prevention |
+| CPU (idle) | <0.1% | EventTap efficiency |
+
+---
+
+## Data Flow (Planned)
+
+### Ring Trigger -> Action Execution
+```
+EventTapManager (otherMouseDown)
+  -> RingViewModel.show(at: cursorPosition)
+  -> ProfileManager.activeProfile
+  -> RingView renders slots
+  -> User moves to slot (RingGeometry.selectedSlot math)
+  -> EventTapManager (otherMouseUp)
+  -> ActionExecutor.execute(slot.action)
+```
+
+### App Switch -> Profile Update
+```
+AppDetector (NSWorkspace notification)
+  -> ContextEngine.handleAppSwitch(bundleId)
+  -> ProfileManager.lookup(bundleId)     -- 4-step chain
+  -> MCPRegistry.relevantServers(bundleId)
+  -> RingViewModel.updateProfile(newProfile)
+```
+
+---
+
+## Related Codemaps
+
+- [profile.md](profile.md) -- Profile system data models
+- [ui.md](ui.md) -- UI components and geometry
+- [data.md](data.md) -- Data models and storage schema
+- [core-layer.md](core-layer.md) -- Business logic modules
+- [app-layer.md](app-layer.md) -- UI and entry points

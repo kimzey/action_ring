@@ -1,7 +1,7 @@
-<!-- Updated: 2026-02-20 -->
+<!-- Updated: 2025-02-20 -->
 # MacRing -- Core Layer Codemap (Business Logic)
 
-> Status: **Phase 1 (Foundation)** -- RingGeometry scaffold exists, all other modules are planned
+> Status: **Phase 1 (Foundation)** -- Profile and UI models complete, other modules planned
 
 ---
 
@@ -9,66 +9,68 @@
 
 ```
 Sources/MacRingCore/
-  App/          .gitkeep                                          <- planned
-  AI/           .gitkeep                                          <- planned
-  Context/      .gitkeep                                          <- planned
-  Execution/    .gitkeep                                          <- planned
-  Input/        .gitkeep                                          <- planned
-  MCP/          .gitkeep                                          <- planned
-  Profile/      .gitkeep                                          <- planned
-  Semantic/     .gitkeep                                          <- planned
-  Storage/      .gitkeep                                          <- planned
-  UI/
-    RingGeometry.swift    <- scaffold (fatalError stubs, interface defined)
+  Profile/                    -- COMPLETE
+    RingAction.swift         -- 13 action types (283 lines)
+    RingSlot.swift           -- Slot model (85 lines)
+    RingProfile.swift        -- Profile model (178 lines)
+  UI/                        -- COMPLETE
+    RingGeometry.swift       -- Geometry calculations (145 lines)
+  App/          .gitkeep     -- Planned
+  AI/           .gitkeep     -- Planned
+  Context/      .gitkeep     -- Planned
+  Execution/    .gitkeep     -- Planned
+  Input/        .gitkeep     -- Planned
+  MCP/          .gitkeep     -- Planned
+  Semantic/     .gitkeep     -- Planned
+  Storage/      .gitkeep     -- Planned
 
 Tests/MacRingCoreTests/
-  Context/      .gitkeep                                          <- planned
-  Execution/    .gitkeep                                          <- planned
-  Input/        .gitkeep                                          <- planned
-  Profile/      .gitkeep                                          <- planned
-  RingGeometryTests.swift <- 30 tests (Swift Testing framework)
+  Profile/                    -- COMPLETE
+    RingActionTests.swift    -- 28 tests
+    RingSlotTests.swift      -- 23 tests
+    RingProfileTests.swift   -- 29 tests
+  RingGeometryTests.swift     -- 30 tests
+  Context/      .gitkeep     -- Planned
+  Execution/    .gitkeep     -- Planned
+  Input/        .gitkeep     -- Planned
 ```
 
 ---
 
-## Implemented Files
+## Implemented Modules
 
-### UI/RingGeometry.swift -- SCAFFOLD (fatalError stubs)
+### Profile Layer (COMPLETE)
 
-| Symbol | Type | Status | Purpose |
-|--------|------|--------|---------|
-| `RingSize` | enum | Stub | `.small` / `.medium` / `.large` with `outerDiameter` property |
-| `RingGeometry` | struct | Stub | `outerDiameter`, `deadZoneRadius`, `slotCount` stored properties |
-| `.selectedSlot(for:)` | method | Stub | Point -> slot index (nil if dead zone) |
-| `.slotAngle(for:)` | method | Stub | Slot index -> angle in radians |
-| `.slotCenter(for:)` | method | Stub | Slot index -> CGPoint at mid-radius |
-| `.slotAngularWidth` | computed | Stub | `2pi / slotCount` |
-| `.outerRadius` | computed | Stub | `outerDiameter / 2` |
-| `.isInRingArea(point:)` | method | Stub | True if between dead zone and outer radius |
+| File | Lines | Exports | Tests |
+|------|-------|---------|-------|
+| `RingAction.swift` | 283 | `RingAction`, `KeyCode`, `SpecialKey`, `KeyModifier`, `SystemAction`, `MCPToolAction`, `MCPWorkflowAction` | 28 |
+| `RingSlot.swift` | 85 | `RingSlot`, `SlotColor` | 23 |
+| `RingProfile.swift` | 178 | `RingProfile`, `ProfileSource`, `AppCategory` | 29 |
 
-Imports: `Foundation`, `CoreGraphics`
+**Key Types:**
+- `RingAction` -- 12-case enum defining all executable actions
+- `RingSlot` -- Single position in the ring with optional action
+- `RingProfile` -- Complete profile with slots, metadata, lifecycle methods
 
-### Tests/RingGeometryTests.swift -- COMPLETE (30 tests)
-
-| Test Group | Count | Covers |
-|------------|-------|--------|
-| Outer radius | 1 | Half-diameter calculation |
-| Slot angular width | 3 | 4, 6, 8 slot configurations |
-| Dead zone | 4 | Origin, inside, boundary, just-outside |
-| Outside ring | 1 | Beyond outer radius still selects |
-| isInRingArea | 3 | Dead zone false, valid true, outside false |
-| Slot selection (8) | 6 | Right(0), up-right(1), up(2), left(4), down(6), wrap(7) |
-| Slot selection (4) | 4 | Right(0), up(1), left(2), down(3) |
-| Slot angle | 4 | Slot 0/2/4/7 angles |
-| Slot center | 2 | Slot 0 on +x, slot 2 on +y |
-| RingSize constants | 3 | small=220, medium=280, large=340 |
-| Edge cases | 3 | Negative coords, tiny distance, boundary between slots |
-
-Framework: Swift Testing (`@Suite`, `@Test`, `#expect`)
+**Dependencies:** `Foundation` only
 
 ---
 
-## Planned Files (Not Yet Created)
+### UI Layer (COMPLETE)
+
+| File | Lines | Exports | Tests |
+|------|-------|---------|-------|
+| `RingGeometry.swift` | 145 | `RingGeometry`, `RingSize`, CGPoint extensions | 30 |
+
+**Key Types:**
+- `RingSize` -- small/medium/large presets with diameters
+- `RingGeometry` -- Coordinate transforms, slot selection, area detection
+
+**Dependencies:** `Foundation`, `AppKit` (conditional)
+
+---
+
+## Planned Modules
 
 ### Input Layer
 
@@ -77,6 +79,8 @@ Framework: Swift Testing (`@Suite`, `@Test`, `#expect`)
 | `EventTapManager.swift` | CGEventTap at kCGHIDEventTap, intercept `.otherMouseDown`/`.otherMouseUp` | EventTap (`.userInteractive`) | HIGH -- Accessibility required |
 | `MouseButtonRecorder.swift` | Brand-agnostic button recording | EventTap | Low |
 | `KeyboardMonitor.swift` | Global modifier+key combo tracking | EventTap | Medium |
+
+---
 
 ### Context Layer
 
@@ -87,18 +91,7 @@ Framework: Swift Testing (`@Suite`, `@Test`, `#expect`)
 | `FullscreenDetector.swift` | Fullscreen suppression | <10ms |
 | `AppCategoryMap.swift` | Bundle ID -> AppCategory, JSON-backed | Instant |
 
-### Profile Layer
-
-| File | Responsibility |
-|------|---------------|
-| `RingProfile.swift` | Profile struct + ProfileSource enum |
-| `RingSlot.swift` | Slot struct (position, label, icon, action) |
-| `RingAction.swift` | 13-case action enum |
-| `MCPToolAction.swift` | MCP tool call parameters |
-| `MCPWorkflowAction.swift` | Chained MCP workflow steps |
-| `ProfileManager.swift` | CRUD, 4-step lookup chain, cache, Combine |
-| `ProfileImportExport.swift` | `.macring` JSON export/import |
-| `BuiltInProfiles.swift` | 50+ preset profiles seeder |
+---
 
 ### Execution Layer
 
@@ -110,6 +103,8 @@ Framework: Swift Testing (`@Suite`, `@Test`, `#expect`)
 | `ScriptRunner.swift` | `shellScript`, `appleScript` | 10s |
 | `WorkflowRunner.swift` | `workflow` (multi-step) | Unbounded |
 | `MCPActionRunner.swift` | `mcpToolCall`, `mcpWorkflow` | 3s/step |
+
+---
 
 ### AI Layer
 
@@ -127,6 +122,8 @@ Framework: Swift Testing (`@Suite`, `@Test`, `#expect`)
 | `WorkflowBuilder.swift` | Sonnet | NL -> workflow |
 | `OfflineFallbackManager.swift` | -- | NWPathMonitor routing |
 
+---
+
 ### MCP Layer
 
 | File | Purpose | Transport |
@@ -139,6 +136,8 @@ Framework: Swift Testing (`@Suite`, `@Test`, `#expect`)
 | `MCPActionAdapter.swift` | RingAction -> MCP bridge | -- |
 | `MCPWorkflowRunner.swift` | Chained tool execution | via MCPClient |
 
+---
+
 ### Semantic Layer
 
 | File | Purpose | Schedule |
@@ -149,6 +148,8 @@ Framework: Swift Testing (`@Suite`, `@Test`, `#expect`)
 | `CosineSimilarity.swift` | Accelerate vDSP | On cluster |
 | `BehaviorClusterer.swift` | k-NN (k=5), silhouette >0.6 | Every 6h |
 | `PatternInterpreter.swift` | Cluster -> Haiku -> workflow | After clustering |
+
+---
 
 ### Storage Layer
 
@@ -199,3 +200,38 @@ SequenceExtractor -> BehaviorSequence
   -> SuggestionManager -> AISuggestion
   -> User accept/dismiss -> ProfileManager.update()
 ```
+
+---
+
+## Module Dependencies
+
+```
+Input (EventTapManager) --[notifications]--> Context
+      |
+      +--[cursor position]--> UI (RingGeometry)
+
+Context (ContextEngine) --[profile lookup]--> Profile
+      |
+      +--[app info]--> AI (AIService)
+
+Profile (ProfileManager) --[slots]--> UI
+      |
+      +--[actions]--> Execution (ActionExecutor)
+
+Execution --[MCP actions]--> MCP (MCPClient)
+
+AI --[behavior data]--> Semantic (NLEmbeddingEngine)
+      |
+      +--[suggestions]--> Profile
+
+All modules --[persistence]--> Storage (Database)
+```
+
+---
+
+## Related Codemaps
+
+- [architecture.md](architecture.md) -- Overall system architecture
+- [profile.md](profile.md) -- Profile system details
+- [ui.md](ui.md) -- UI components
+- [data.md](data.md) -- Data models and storage

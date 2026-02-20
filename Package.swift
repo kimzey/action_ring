@@ -13,9 +13,14 @@ let package = Package(
             targets: ["MacRingCore"]
         )
     ],
+    dependencies: [
+        // Add external dependencies here when needed:
+        // .package(url: "https://github.com/groue/GRDB.swift.git", from: "6.0.0")
+    ],
     targets: [
         .target(
             name: "MacRingCore",
+            dependencies: [],
             path: "Sources/MacRingCore",
             swiftSettings: [
                 .swiftLanguageMode(.v5)

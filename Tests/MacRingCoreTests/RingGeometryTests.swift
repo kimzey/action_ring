@@ -1,5 +1,5 @@
 import Testing
-import CoreGraphics
+import Foundation
 @testable import MacRingCore
 
 @Suite("RingGeometry Tests")
