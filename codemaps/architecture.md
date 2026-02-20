@@ -1,6 +1,23 @@
+<!-- Updated: 2026-02-20 -->
 # MacRing -- System Architecture Codemap
 
-> Generated: 2026-02-20 | Source: PRD v2.0.0 | Status: Pre-development (planning phase)
+> Status: **Phase 1 (Foundation)** -- Weeks 1-3 | SPM scaffold + RingGeometry stub + 30 tests
+
+---
+
+## Implementation Status
+
+| Layer | Status | Files |
+|-------|--------|-------|
+| App | Planned | .gitkeep only |
+| UI | Scaffold | `RingGeometry.swift` (fatalError stubs) |
+| Core (Input, Context, Profile, Execution) | Planned | .gitkeep only |
+| AI | Planned | .gitkeep only |
+| MCP | Planned | .gitkeep only |
+| Semantic | Planned | .gitkeep only |
+| Storage | Planned | .gitkeep only |
+| Tests | Partial | `RingGeometryTests.swift` (30 tests, Swift Testing) |
+| Package.swift | Done | SPM, macOS 14+, Swift 6.0 toolchain, v5 language mode |
 
 ---
 
@@ -8,21 +25,21 @@
 
 ```
 +---------------------------------------------------------------+
-|  APP          MacRingApp.swift | AppDelegate.swift             |
+|  APP          MacRingApp.swift | AppDelegate.swift             |  <- planned
 +---------------------------------------------------------------+
-|  UI           RingWindow | Configurator | MenuBar | Onboarding|
+|  UI           RingWindow | Configurator | MenuBar | Onboarding|  <- RingGeometry stub exists
 +---------------------------------------------------------------+
-|  CORE         ProfileManager | ContextEngine | ActionExecutor  |
+|  CORE         ProfileManager | ContextEngine | ActionExecutor  |  <- planned
 +---------------------------------------------------------------+
-|  AI           AIService | SuggestionManager | BehaviorTracker  |
+|  AI           AIService | SuggestionManager | BehaviorTracker  |  <- planned
 +---------------------------------------------------------------+
-|  MCP          MCPClient | MCPRegistry | MCPToolRunner          |
+|  MCP          MCPClient | MCPRegistry | MCPToolRunner          |  <- planned
 +---------------------------------------------------------------+
-|  SEMANTIC     NLEmbeddingEngine | BehaviorClusterer            |
+|  SEMANTIC     NLEmbeddingEngine | BehaviorClusterer            |  <- planned
 +---------------------------------------------------------------+
-|  INPUT        EventTapManager | KeyboardMonitor | AppDetector  |
+|  INPUT        EventTapManager | KeyboardMonitor | AppDetector  |  <- planned
 +---------------------------------------------------------------+
-|  STORAGE      SQLite (GRDB) | Keychain | VectorDB (BLOB)      |
+|  STORAGE      SQLite (GRDB) | Keychain | VectorDB (BLOB)      |  <- planned
 +---------------------------------------------------------------+
                        | HTTPS / stdio / SSE
               Claude API  |  MCP Servers  |  smithery.ai
@@ -76,7 +93,7 @@ TIER 1: DISCOVERY (<500ms)          TIER 2: OBSERVATION (passive)       TIER 3: 
 
 | Service | Protocol | Purpose | Auth |
 |---------|----------|---------|------|
-| Claude API (Haiku) | HTTPS | Suggestions, shortcut discovery, MCP selection, pattern interpretation | User API key |
+| Claude API (Haiku) | HTTPS | Suggestions, shortcut discovery, MCP selection | User API key |
 | Claude API (Sonnet) | HTTPS | Auto profile gen, NL config, workflow builder | User API key |
 | smithery.ai | HTTPS | MCP server registry (6,480+ servers) | None (public) |
 | MCP Servers (local) | stdio | GitHub, Filesystem, Docker, Postgres, Puppeteer | Per-server Keychain |
@@ -127,7 +144,7 @@ TIER 1: DISCOVERY (<500ms)          TIER 2: OBSERVATION (passive)       TIER 3: 
 
 | Concern | Technology |
 |---------|-----------|
-| Language | Swift 5.10+ |
+| Language | Swift 5.10+ (toolchain 6.0, language mode v5) |
 | UI | SwiftUI 5.0+ (macOS 14+) |
 | Mouse capture | CGEventTap (Quartz) -- all brands |
 | App detection | NSWorkspace + Accessibility API |
@@ -145,13 +162,12 @@ TIER 1: DISCOVERY (<500ms)          TIER 2: OBSERVATION (passive)       TIER 3: 
 
 ## Development Phases (18 weeks)
 
-| Phase | Weeks | Files | Deliverable |
-|-------|-------|-------|-------------|
-| 1 Foundation | 1-3 | ~26 | Ring + CGEventTap + menu bar |
-| 2 Context | 4-5 | ~9 | App-switching profiles, 10+ presets --> **MVP** |
-| 3 Configurator | 6-8 | ~13 | Visual drag-and-drop editor |
-| 4 AI | 9-12 | ~15 | Smart suggestions, auto-profile, NL config |
-| 5 MCP | 13-15 | ~13 | MCP client, discovery, tool execution |
-| 6 Semantic | 16 | ~8 | On-device embeddings, clustering |
-| 7 Polish | 17-18 | ~8 | Onboarding, code signing, DMG, Sparkle |
-| **Total** | **18** | **~92** | **+ ~39 test files** |
+| Phase | Weeks | Status | Deliverable |
+|-------|-------|--------|-------------|
+| 1 Foundation | 1-3 | **In progress** | Ring + CGEventTap + menu bar |
+| 2 Context | 4-5 | Planned | App-switching profiles, 10+ presets --> **MVP** |
+| 3 Configurator | 6-8 | Planned | Visual drag-and-drop editor |
+| 4 AI | 9-12 | Planned | Smart suggestions, auto-profile, NL config |
+| 5 MCP | 13-15 | Planned | MCP client, discovery, tool execution |
+| 6 Semantic | 16 | Planned | On-device embeddings, clustering |
+| 7 Polish | 17-18 | Planned | Onboarding, code signing, DMG, Sparkle |

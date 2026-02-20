@@ -1,183 +1,163 @@
+<!-- Updated: 2026-02-20 -->
 # MacRing -- Core Layer Codemap (Business Logic)
 
-> Generated: 2026-02-20 | Source: PRD v2.0.0 | Status: Pre-development (planning phase)
+> Status: **Phase 1 (Foundation)** -- RingGeometry scaffold exists, all other modules are planned
 
 ---
 
-## Directory Structure
+## Actual Directory Structure
 
 ```
-MacRing/
-  Core/
-    Input/
-      EventTapManager.swift       -- CGEventTap at kCGHIDEventTap
-      MouseButtonRecorder.swift   -- Brand-agnostic button recording
-      KeyboardMonitor.swift       -- Global modifier+key combo tracking
-    Context/
-      AppDetector.swift           -- NSWorkspace app activation detection
-      ContextEngine.swift         -- Orchestrator: app switch -> profile -> ring
-      FullscreenDetector.swift    -- Fullscreen suppression
-      AppCategoryMap.swift        -- Bundle ID -> category mapping
-    Profile/
-      RingProfile.swift           -- Profile struct + ProfileSource enum
-      RingSlot.swift              -- Slot struct (position, label, icon, action)
-      RingAction.swift            -- 13-case action enum
-      MCPToolAction.swift         -- MCP tool call parameters
-      MCPWorkflowAction.swift     -- Chained MCP workflow steps
-      ProfileManager.swift        -- CRUD, lookup chain, cache, Combine
-      ProfileImportExport.swift   -- .macring JSON export/import
-      BuiltInProfiles.swift       -- 50+ preset profiles seeder
-    Execution/
-      ActionExecutor.swift        -- Dispatcher via ActionRunnable protocol
-      KeyboardSimulator.swift     -- CGEvent key simulation
-      SystemActionRunner.swift    -- Lock, screenshot, volume, brightness
-      ScriptRunner.swift          -- Shell (Process) + AppleScript, 10s timeout
-      WorkflowRunner.swift        -- Multi-step sequences, cancellation
-      MCPActionRunner.swift       -- MCP tool/workflow execution bridge
-  AI/
-    AIService.swift               -- Claude API client, model routing, retry
-    AIPromptBuilder.swift         -- Prompt templates, privacy enforcement
-    AIResponseParser.swift        -- JSON validation, Codable parsing
-    AICache.swift                 -- Response cache (7-day TTL)
-    TokenTracker.swift            -- Usage + cost tracking, budget warning
-    BehaviorTracker.swift         -- Ring interaction recording, TTL purge
-    SuggestionManager.swift       -- Online (Haiku) + offline (rule-based)
-    AutoProfileGenerator.swift    -- Sonnet profile gen, preview before apply
-    NLConfigEngine.swift          -- NL command parsing, undo stack
-    WorkflowBuilder.swift         -- NL -> multi-step workflow generation
-    OfflineFallbackManager.swift  -- NWPathMonitor, request routing
-  MCP/
-    MCPClient.swift               -- mcp-swift-sdk wrapper, stdio + HTTP/SSE
-    MCPServerManager.swift        -- Server lifecycle, heartbeat, reconnect
-    MCPCredentialManager.swift    -- Per-server Keychain isolation
-    MCPRegistry.swift             -- smithery.ai query, 7-day cache
-    MCPToolRunner.swift           -- Tool execution, error handling
-    MCPActionAdapter.swift        -- RingAction -> MCP call conversion
-    MCPWorkflowRunner.swift       -- Chained tool execution, output passing
-  Semantic/
-    NLEmbeddingEngine.swift       -- NLEmbedding 512-dim vectors
-    SequenceExtractor.swift       -- Raw interactions -> 30s-window sequences
-    VectorStore.swift             -- SQLite BLOB CRUD, 90-day purge
-    CosineSimilarity.swift        -- Accelerate.framework vDSP
-    BehaviorClusterer.swift       -- k-NN (k=5), silhouette tracking
-    PatternInterpreter.swift      -- Cluster -> Haiku -> workflow name
-  Storage/
-    Database.swift                -- GRDB setup, WAL, 13 tables, migrations
-    KeychainManager.swift         -- Security.framework wrapper
-    VectorDatabase.swift          -- Vector query layer
-    ShortcutDatabase.swift        -- Preset query by bundle ID / category
+Sources/MacRingCore/
+  App/          .gitkeep                                          <- planned
+  AI/           .gitkeep                                          <- planned
+  Context/      .gitkeep                                          <- planned
+  Execution/    .gitkeep                                          <- planned
+  Input/        .gitkeep                                          <- planned
+  MCP/          .gitkeep                                          <- planned
+  Profile/      .gitkeep                                          <- planned
+  Semantic/     .gitkeep                                          <- planned
+  Storage/      .gitkeep                                          <- planned
+  UI/
+    RingGeometry.swift    <- scaffold (fatalError stubs, interface defined)
+
+Tests/MacRingCoreTests/
+  Context/      .gitkeep                                          <- planned
+  Execution/    .gitkeep                                          <- planned
+  Input/        .gitkeep                                          <- planned
+  Profile/      .gitkeep                                          <- planned
+  RingGeometryTests.swift <- 30 tests (Swift Testing framework)
 ```
 
 ---
 
-## Input Layer
+## Implemented Files
 
-| Component | Responsibility | Thread | Risk |
-|-----------|---------------|--------|------|
-| `EventTapManager` | CGEventTap at kCGHIDEventTap, intercept `.otherMouseDown`/`.otherMouseUp`, consume trigger event | EventTap (`.userInteractive`) | HIGH -- requires Accessibility, conflicts with BTT/Options+ |
-| `MouseButtonRecorder` | Listen for ANY button, capture CGMouseButton int, save as trigger | EventTap | Low |
-| `KeyboardMonitor` | Global CGEventTap for modifier+key combos ONLY (never raw typing) | EventTap | Medium -- must not capture passwords |
+### UI/RingGeometry.swift -- SCAFFOLD (fatalError stubs)
 
-**Universal mouse support:** CGEventTap normalizes all brands at HID layer. CGMouseButton is a simple int (0-31). No vendor drivers needed.
+| Symbol | Type | Status | Purpose |
+|--------|------|--------|---------|
+| `RingSize` | enum | Stub | `.small` / `.medium` / `.large` with `outerDiameter` property |
+| `RingGeometry` | struct | Stub | `outerDiameter`, `deadZoneRadius`, `slotCount` stored properties |
+| `.selectedSlot(for:)` | method | Stub | Point -> slot index (nil if dead zone) |
+| `.slotAngle(for:)` | method | Stub | Slot index -> angle in radians |
+| `.slotCenter(for:)` | method | Stub | Slot index -> CGPoint at mid-radius |
+| `.slotAngularWidth` | computed | Stub | `2pi / slotCount` |
+| `.outerRadius` | computed | Stub | `outerDiameter / 2` |
+| `.isInRingArea(point:)` | method | Stub | True if between dead zone and outer radius |
 
----
+Imports: `Foundation`, `CoreGraphics`
 
-## Context Layer
+### Tests/RingGeometryTests.swift -- COMPLETE (30 tests)
 
-| Component | Responsibility | Latency |
-|-----------|---------------|---------|
-| `AppDetector` | NSWorkspace.didActivateApplicationNotification, extract bundleIdentifier | <10ms |
-| `ContextEngine` | Orchestrate: app switch -> profile lookup -> ring update -> MCP discovery | <500ms |
-| `FullscreenDetector` | NSScreen + CGWindowListCopyWindowInfo, configurable suppression | <10ms |
-| `AppCategoryMap` | Bundle ID -> AppCategory (IDE, Browser, Design...), loaded from JSON | Instant (cached) |
+| Test Group | Count | Covers |
+|------------|-------|--------|
+| Outer radius | 1 | Half-diameter calculation |
+| Slot angular width | 3 | 4, 6, 8 slot configurations |
+| Dead zone | 4 | Origin, inside, boundary, just-outside |
+| Outside ring | 1 | Beyond outer radius still selects |
+| isInRingArea | 3 | Dead zone false, valid true, outside false |
+| Slot selection (8) | 6 | Right(0), up-right(1), up(2), left(4), down(6), wrap(7) |
+| Slot selection (4) | 4 | Right(0), up(1), left(2), down(3) |
+| Slot angle | 4 | Slot 0/2/4/7 angles |
+| Slot center | 2 | Slot 0 on +x, slot 2 on +y |
+| RingSize constants | 3 | small=220, medium=280, large=340 |
+| Edge cases | 3 | Negative coords, tiny distance, boundary between slots |
 
----
-
-## Profile Layer
-
-| Component | Responsibility |
-|-----------|---------------|
-| `RingProfile` | Struct: id, name, bundleId, category, slots, slotCount, mcpServers, source |
-| `RingSlot` | Struct: position, label, icon (SF Symbol), action, isEnabled, color |
-| `RingAction` | Enum with 13 cases (11 local + 2 MCP) |
-| `ProfileManager` | CRUD, 4-step lookup chain, in-memory cache, Combine publisher |
-| `ProfileImportExport` | Export `.macring` JSON (NSSavePanel), import + validate (NSOpenPanel) |
-| `BuiltInProfiles` | Seed DB with 50+ presets from `shortcut_presets.json` |
-
-**Profile sources:** `.builtin` | `.user` | `.ai` | `.community` | `.mcp`
-
----
-
-## Execution Layer
-
-| Runner | Actions Handled | Mechanism | Timeout |
-|--------|----------------|-----------|---------|
-| `ActionExecutor` | All (dispatcher) | Routes via `ActionRunnable` protocol | -- |
-| `KeyboardSimulator` | `keyboardShortcut` | CGEvent keyDown/keyUp + modifiers | <20ms |
-| `SystemActionRunner` | `systemAction` | NSWorkspace + CGSession | <20ms |
-| `ScriptRunner` | `shellScript`, `appleScript` | Process / NSAppleScript | 10s |
-| `WorkflowRunner` | `workflow` | Sequential steps, configurable delay | Unbounded |
-| `MCPActionRunner` | `mcpToolCall`, `mcpWorkflow` | MCPClient via MCPActionAdapter | 3s/step |
+Framework: Swift Testing (`@Suite`, `@Test`, `#expect`)
 
 ---
 
-## AI Layer
+## Planned Files (Not Yet Created)
 
-| Component | Model | Purpose | Offline Fallback |
-|-----------|-------|---------|-----------------|
-| `AIService` | Haiku/Sonnet | Claude API client, rate limiting, 3x retry | N/A |
-| `AIPromptBuilder` | -- | Template builder, privacy enforcement | N/A |
-| `AIResponseParser` | -- | JSON validation, Codable parsing | N/A |
-| `AICache` | -- | Prompt hash -> response, 7-day TTL | N/A |
-| `TokenTracker` | -- | Per-day token count, monthly budget | N/A |
-| `BehaviorTracker` | -- | Record ring interactions, TTL purge | Always on |
-| `SuggestionManager` | Haiku | Smart suggestions (confidence >= 0.7) | Rule-based (frequency threshold) |
-| `AutoProfileGenerator` | Sonnet | Generate 8-slot profile for unknown app | Category preset |
-| `NLConfigEngine` | Sonnet | "Add screenshot to slot 3" | Disabled |
-| `WorkflowBuilder` | Sonnet | NL -> multi-step action sequence | Manual-only |
-| `OfflineFallbackManager` | -- | NWPathMonitor, request routing | -- |
+### Input Layer
 
----
+| File | Responsibility | Thread | Risk |
+|------|---------------|--------|------|
+| `EventTapManager.swift` | CGEventTap at kCGHIDEventTap, intercept `.otherMouseDown`/`.otherMouseUp` | EventTap (`.userInteractive`) | HIGH -- Accessibility required |
+| `MouseButtonRecorder.swift` | Brand-agnostic button recording | EventTap | Low |
+| `KeyboardMonitor.swift` | Global modifier+key combo tracking | EventTap | Medium |
 
-## MCP Layer
+### Context Layer
 
-| Component | Purpose | Transport |
-|-----------|---------|-----------|
-| `MCPClient` | mcp-swift-sdk wrapper, connect/list/call/disconnect | stdio, HTTP/SSE |
-| `MCPServerManager` | Start/stop local servers (Process), heartbeat, auto-reconnect | stdio |
-| `MCPCredentialManager` | Per-server Keychain (`macring.mcp.{serverId}`), masked display | -- |
-| `MCPRegistry` | Query smithery.ai, cache in `mcp_tools` (7-day TTL) | HTTPS |
-| `MCPToolRunner` | Execute tool, handle errors (timeout, auth, not found) | via MCPClient |
-| `MCPActionAdapter` | Bridge RingAction -> MCPToolRunner, parameter templates | -- |
-| `MCPWorkflowRunner` | Chain tool calls, output passing between steps, per-step progress | via MCPClient |
+| File | Responsibility | Latency |
+|------|---------------|---------|
+| `AppDetector.swift` | NSWorkspace.didActivateApplicationNotification | <10ms |
+| `ContextEngine.swift` | App switch -> profile lookup -> ring update -> MCP | <500ms |
+| `FullscreenDetector.swift` | Fullscreen suppression | <10ms |
+| `AppCategoryMap.swift` | Bundle ID -> AppCategory, JSON-backed | Instant |
 
-**Supported servers (v1.0):** GitHub, Slack, Notion, Linear, Filesystem, Docker, Postgres, Brave Search, Puppeteer, Memory
+### Profile Layer
 
----
+| File | Responsibility |
+|------|---------------|
+| `RingProfile.swift` | Profile struct + ProfileSource enum |
+| `RingSlot.swift` | Slot struct (position, label, icon, action) |
+| `RingAction.swift` | 13-case action enum |
+| `MCPToolAction.swift` | MCP tool call parameters |
+| `MCPWorkflowAction.swift` | Chained MCP workflow steps |
+| `ProfileManager.swift` | CRUD, 4-step lookup chain, cache, Combine |
+| `ProfileImportExport.swift` | `.macring` JSON export/import |
+| `BuiltInProfiles.swift` | 50+ preset profiles seeder |
 
-## Semantic Layer
+### Execution Layer
 
-| Component | Purpose | Schedule |
-|-----------|---------|----------|
-| `NLEmbeddingEngine` | NLEmbedding 512-dim vectors from action sequence strings | On demand |
-| `SequenceExtractor` | Group raw interactions into 30-second-window sequences | Continuous |
-| `VectorStore` | SQLite BLOB CRUD, batch insert, 90-day auto-purge | On write |
-| `CosineSimilarity` | Accelerate.framework vDSP vectorized similarity | On cluster |
-| `BehaviorClusterer` | k-NN (k=5), silhouette >0.6 target | Every 6h or on demand |
-| `PatternInterpreter` | Cluster reps -> Haiku -> workflow name + description | After clustering |
+| File | Actions Handled | Timeout |
+|------|----------------|---------|
+| `ActionExecutor.swift` | All (dispatcher via `ActionRunnable`) | -- |
+| `KeyboardSimulator.swift` | `keyboardShortcut` | <20ms |
+| `SystemActionRunner.swift` | `systemAction` | <20ms |
+| `ScriptRunner.swift` | `shellScript`, `appleScript` | 10s |
+| `WorkflowRunner.swift` | `workflow` (multi-step) | Unbounded |
+| `MCPActionRunner.swift` | `mcpToolCall`, `mcpWorkflow` | 3s/step |
 
-**Fallback:** If silhouette <0.4, fall back to frequency-only analysis (no Haiku needed).
+### AI Layer
 
----
+| File | Model | Purpose |
+|------|-------|---------|
+| `AIService.swift` | Haiku/Sonnet | Claude API client, retry |
+| `AIPromptBuilder.swift` | -- | Templates, privacy enforcement |
+| `AIResponseParser.swift` | -- | JSON validation |
+| `AICache.swift` | -- | 7-day TTL cache |
+| `TokenTracker.swift` | -- | Usage + cost tracking |
+| `BehaviorTracker.swift` | -- | Interaction recording |
+| `SuggestionManager.swift` | Haiku | Smart suggestions |
+| `AutoProfileGenerator.swift` | Sonnet | Profile generation |
+| `NLConfigEngine.swift` | Sonnet | NL command parsing |
+| `WorkflowBuilder.swift` | Sonnet | NL -> workflow |
+| `OfflineFallbackManager.swift` | -- | NWPathMonitor routing |
 
-## Storage Layer
+### MCP Layer
 
-| Component | Backend | Purpose |
-|-----------|---------|---------|
-| `Database` | GRDB.swift 6.x (SQLite, WAL mode) | 13 tables, migration chain |
-| `KeychainManager` | Security.framework | All secrets, per-service isolation |
-| `VectorDatabase` | SQLite BLOB | Vector retrieval by bundleId, time, cluster |
-| `ShortcutDatabase` | SQLite | Preset queries by bundle ID / category |
+| File | Purpose | Transport |
+|------|---------|-----------|
+| `MCPClient.swift` | mcp-swift-sdk wrapper | stdio, HTTP/SSE |
+| `MCPServerManager.swift` | Server lifecycle, heartbeat | stdio |
+| `MCPCredentialManager.swift` | Per-server Keychain | -- |
+| `MCPRegistry.swift` | smithery.ai query, 7-day cache | HTTPS |
+| `MCPToolRunner.swift` | Tool execution | via MCPClient |
+| `MCPActionAdapter.swift` | RingAction -> MCP bridge | -- |
+| `MCPWorkflowRunner.swift` | Chained tool execution | via MCPClient |
+
+### Semantic Layer
+
+| File | Purpose | Schedule |
+|------|---------|----------|
+| `NLEmbeddingEngine.swift` | NLEmbedding 512-dim vectors | On demand |
+| `SequenceExtractor.swift` | 30-second-window grouping | Continuous |
+| `VectorStore.swift` | SQLite BLOB CRUD, 90-day purge | On write |
+| `CosineSimilarity.swift` | Accelerate vDSP | On cluster |
+| `BehaviorClusterer.swift` | k-NN (k=5), silhouette >0.6 | Every 6h |
+| `PatternInterpreter.swift` | Cluster -> Haiku -> workflow | After clustering |
+
+### Storage Layer
+
+| File | Backend | Purpose |
+|------|---------|---------|
+| `Database.swift` | GRDB.swift 6.x (WAL) | 13 tables, migrations |
+| `KeychainManager.swift` | Security.framework | All secrets |
+| `VectorDatabase.swift` | SQLite BLOB | Vector retrieval |
+| `ShortcutDatabase.swift` | SQLite | Preset queries |
 
 ---
 
@@ -189,7 +169,7 @@ EventTapManager (otherMouseDown)
   -> RingViewModel.show(at: cursorPosition)
   -> ProfileManager.activeProfile
   -> RingView renders slots
-  -> User moves to slot (atan2 math)
+  -> User moves to slot (RingGeometry.selectedSlot math)
   -> EventTapManager (otherMouseUp)
   -> ActionExecutor.execute(slot.action)
   -> [KeyboardSimulator | ScriptRunner | MCPActionRunner | ...]

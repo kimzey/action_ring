@@ -1,0 +1,74 @@
+# ============================================================
+# MacRing — Swift / macOS / Xcode .gitignore
+# ============================================================
+
+# Swift Package Manager build artifacts
+.build/
+.swiftpm/
+
+# Xcode user-specific data
+*.xcodeproj/xcuserdata/
+*.xcworkspace/xcuserdata/
+*.xcworkspace/xcshareddata/IDEWorkspaceChecks.plist
+*.xcworkspace/xcshareddata/WorkspaceSettings.xcsettings
+
+# Xcode derived data & archives
+DerivedData/
+*.xcarchive
+*.xcresult
+
+# Legacy Xcode project files
+*.moved-aside
+*.pbxuser
+!default.pbxuser
+*.mode1v3
+!default.mode1v3
+*.mode2v3
+!default.mode2v3
+*.perspectivev3
+!default.perspectivev3
+*.xccheckout
+*.xcscmblueprint
+
+# macOS filesystem artifacts
+.DS_Store
+.AppleDouble
+.LSOverride
+._*
+.Spotlight-V100
+.Trashes
+Icon?
+
+# Build output
+*.o
+*.d
+*.a
+*.dylib
+
+# Secrets & credentials (NEVER commit)
+.env
+.env.*
+*.pem
+*.key
+*.p8
+*.p12
+*.mobileprovision
+AuthKey_*.p8
+
+# Editor artifacts
+.idea/
+*.swp
+*.swo
+*~
+.vscode/
+
+# Local Claude / tool config
+.claude/settings.local.json
+.reports/
+
+# Test results
+*.xctestresult
+test-results/
+
+# Sparkle update keys (keep public key only, not private)
+sparkle_private_key*

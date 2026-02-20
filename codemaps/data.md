@@ -1,10 +1,42 @@
+<!-- Updated: 2026-02-20 -->
 # MacRing -- Data Models & Storage Codemap
 
-> Generated: 2026-02-20 | Source: PRD v2.0.0 | Status: Pre-development (planning phase)
+> Status: **Phase 1 (Foundation)** -- RingGeometry + RingSize defined (stubs), all other models planned
 
 ---
 
-## Core Models
+## Implemented Models
+
+### RingGeometry (UI/RingGeometry.swift -- scaffold, fatalError stubs)
+
+```swift
+struct RingGeometry {
+    let outerDiameter: CGFloat   // 220 | 280 | 340
+    let deadZoneRadius: CGFloat  // 35
+    let slotCount: Int           // 4 | 6 | 8
+
+    func selectedSlot(for point: CGPoint) -> Int?  // nil = dead zone
+    func slotAngle(for index: Int) -> CGFloat      // radians
+    func slotCenter(for index: Int) -> CGPoint     // mid-radius point
+    var slotAngularWidth: CGFloat                  // 2pi / slotCount
+    var outerRadius: CGFloat                       // outerDiameter / 2
+    func isInRingArea(point: CGPoint) -> Bool       // dead zone < d < outer
+}
+```
+
+### RingSize (UI/RingGeometry.swift -- scaffold, fatalError stub)
+
+```swift
+enum RingSize {
+    case small    // outerDiameter = 220
+    case medium   // outerDiameter = 280
+    case large    // outerDiameter = 340
+}
+```
+
+---
+
+## Planned Models (Not Yet Created)
 
 ### RingProfile
 
@@ -42,19 +74,19 @@ struct RingSlot: Codable, Identifiable {
 
 ```swift
 enum RingAction: Codable {
-    case keyboardShortcut(KeyboardShortcutAction)   // modifiers + key
-    case launchApplication(LaunchAppAction)          // bundle ID or path
-    case openURL(OpenURLAction)                      // URL string
-    case systemAction(SystemActionType)              // lock, screenshot, volume...
-    case shellScript(ShellScriptAction)              // bash/zsh, 10s timeout
-    case appleScript(AppleScriptAction)              // NSAppleScript
-    case shortcutsApp(ShortcutsAppAction)            // Shortcuts.app workflow
-    case textSnippet(TextSnippetAction)              // paste text
-    case openFileFolder(FileFolderAction)            // Finder reveal
-    case workflow(WorkflowAction)                    // multi-step sequence
-    case subRing(SubRingAction)                      // nested ring (v1.1)
-    case mcpToolCall(MCPToolAction)                  // single MCP tool
-    case mcpWorkflow(MCPWorkflowAction)              // chained MCP tools
+    case keyboardShortcut(KeyboardShortcutAction)
+    case launchApplication(LaunchAppAction)
+    case openURL(OpenURLAction)
+    case systemAction(SystemActionType)
+    case shellScript(ShellScriptAction)
+    case appleScript(AppleScriptAction)
+    case shortcutsApp(ShortcutsAppAction)
+    case textSnippet(TextSnippetAction)
+    case openFileFolder(FileFolderAction)
+    case workflow(WorkflowAction)
+    case subRing(SubRingAction)
+    case mcpToolCall(MCPToolAction)
+    case mcpWorkflow(MCPWorkflowAction)
 }
 ```
 
@@ -70,7 +102,7 @@ enum RingAction: Codable {
 
 ---
 
-## Enums
+## Enums (Planned)
 
 | Enum | Cases |
 |------|-------|
@@ -83,38 +115,36 @@ enum RingAction: Codable {
 
 ---
 
-## Behavior & AI Models
+## Behavior & AI Models (Planned)
 
 | Model | Key Fields | Table |
 |-------|-----------|-------|
 | `ActionEvent` | id, bundleId, actionType, actionLabel, slotPosition, timestamp | `raw_interactions` |
 | `UsageRecord` | id, bundleId, actionType, actionLabel, count, lastUsed | `usage_records` |
-| `BehaviorSequence` | id, actions, bundleId, timestamp, embedding: [Float]? (512-dim), clusterId | `behavior_sequences` |
+| `BehaviorSequence` | id, actions, bundleId, timestamp, embedding (512-dim), clusterId | `behavior_sequences` |
 | `AISuggestion` | id, bundleId, suggestedSlot, confidence (0-1), reason, source, status | `ai_suggestions` |
-| `BehaviorCluster` | id, bundleId, representativeSequences, centroid: [Float], frequency, silhouetteScore, interpretation | `behavior_clusters` |
-| `ClusterInterpretation` | workflowName, description, suggestedAction, confidence | Embedded in BehaviorCluster |
+| `BehaviorCluster` | id, bundleId, centroid, frequency, silhouetteScore, interpretation | `behavior_clusters` |
 
 ---
 
-## MCP Models
+## MCP Models (Planned)
 
 | Model | Key Fields | Table |
 |-------|-----------|-------|
 | `MCPServer` | id, packageName, transport, isEnabled, autoStart, categories, status | `mcp_servers` |
-| `MCPTool` | id (`{serverId}.{toolName}`), serverId, toolName, description, parameters, categories | `mcp_tools` |
-| `MCPParameter` | name, type, description, required, defaultValue | Embedded in MCPTool |
+| `MCPTool` | id (`{serverId}.{toolName}`), serverId, toolName, description, parameters | `mcp_tools` |
 | `MouseTrigger` | buttonIndex (0-31), holdDurationMs (default 200), brand? | `triggers` |
 
 ---
 
-## Database Schema (13 Tables)
+## Database Schema (13 Tables -- Planned)
 
 | Table | Primary Key | Retention | Notes |
 |-------|-------------|-----------|-------|
 | `profiles` | `id` (UUID) | Permanent | Slots stored as JSON column |
 | `triggers` | `id` (Int) | Permanent | Single-row table |
 | `mcp_servers` | `id` (String) | Permanent | Installed server configs |
-| `mcp_credentials` | -- | Permanent | Reference only; actual creds in Keychain |
+| `mcp_credentials` | -- | Permanent | Reference only; creds in Keychain |
 | `usage_records` | `id` (UUID) | 90 days | Aggregated action counts |
 | `behavior_sequences` | `id` (UUID) | 90 days | Grouped action sequences |
 | `vector_store` | `sequenceId` (UUID) | 90 days | Embedding BLOBs |
@@ -125,23 +155,21 @@ enum RingAction: Codable {
 | `raw_interactions` | `id` (UUID) | 24h-30d | User-configurable TTL |
 | `shortcut_presets` | `bundleId` (String) | App updates | Bundled presets |
 
-**Database config:** GRDB.swift 6.x, SQLite WAL mode, migration chain.
+**Database config:** GRDB.swift 6.x, SQLite WAL mode, migration chain. Not yet implemented.
 
 ---
 
-## Keychain Storage Map
+## Keychain Storage Map (Planned)
 
 | Service Tag | Content | Access |
 |-------------|---------|--------|
 | `macring.claude.apikey` | Claude API key | AIService only |
 | `macring.mcp.github` | GitHub PAT | MCPCredentialManager |
-| `macring.mcp.slack` | Slack Bot Token (`xoxb-...`) | MCPCredentialManager |
+| `macring.mcp.slack` | Slack Bot Token | MCPCredentialManager |
 | `macring.mcp.notion` | Notion Integration Token | MCPCredentialManager |
 | `macring.mcp.linear` | Linear API Key | MCPCredentialManager |
 | `macring.mcp.brave-search` | Brave Search API Key | MCPCredentialManager |
 | `macring.mcp.postgres` | Connection string | MCPCredentialManager |
-
-**Rules:** Keychain only. Never UserDefaults. Never logged. Never in plaintext. Per-server isolation. Masked in UI (last 4 chars).
 
 ---
 
@@ -156,48 +184,24 @@ enum RingAction: Codable {
 | Aggregated behavior patterns | Raw UI events |
 | MCP tool names | Screen / clipboard content |
 
-**Enforcement:** `AIPromptBuilder` blocks forbidden fields. Automated privacy tests in CI block merges on failure.
-
----
-
-## Data Table -> Model Mapping
-
-| Model | Table | Storage |
-|-------|-------|---------|
-| `RingProfile` | `profiles` | SQLite (GRDB) |
-| `RingSlot` | `profiles.slots` (JSON) | Embedded |
-| `ActionEvent` | `raw_interactions` | SQLite |
-| `UsageRecord` | `usage_records` | SQLite |
-| `BehaviorSequence` | `behavior_sequences` | SQLite |
-| Embedding vectors | `vector_store` | SQLite BLOB |
-| `AISuggestion` | `ai_suggestions` | SQLite |
-| `BehaviorCluster` | `behavior_clusters` | SQLite |
-| `MCPServer` | `mcp_servers` | SQLite |
-| `MCPTool` | `mcp_tools` | SQLite |
-| MCP credentials | Keychain | `macring.mcp.{serverId}` |
-| `MouseTrigger` | `triggers` | SQLite |
-| Shortcut presets | `shortcut_presets` | SQLite |
-
 ---
 
 ## Immutability Pattern
 
-All models are Swift structs. Mutations produce new copies via copy-on-write:
+All models are Swift structs. Mutations produce new copies:
 
 ```swift
-// Update profile via ProfileManager (handles persistence + Combine publish)
 let updated = ProfileManager.update(profile, name: "New Name")
+// Creates new struct, persists to DB, publishes via Combine
 ```
-
-Never mutate in place. `ProfileManager.update()` creates a new struct, persists to DB, and publishes via Combine.
 
 ---
 
-## Resource Files
+## Resource Files (Planned)
 
 | File | Purpose |
 |------|---------|
-| `Resources/shortcut_presets.json` | 50+ built-in profiles (bundle ID -> 8 slots) |
-| `Resources/app_categories.json` | 100+ bundle IDs -> AppCategory mapping |
+| `Resources/shortcut_presets.json` | 50+ built-in profiles |
+| `Resources/app_categories.json` | 100+ bundle IDs -> AppCategory |
 | `Resources/mcp_server_defaults.json` | Default configs for 10 MCP servers |
 | `~/.macring/mcp-servers.json` | User MCP server configuration (runtime) |

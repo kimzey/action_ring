@@ -1,17 +1,31 @@
+<!-- Updated: 2026-02-20 -->
 # MacRing -- App Layer Codemap (UI + Entry Points)
 
-> Generated: 2026-02-20 | Source: PRD v2.0.0 | Status: Pre-development (planning phase)
+> Status: **Phase 1 (Foundation)** -- RingGeometry scaffold only, all UI views planned
 
 ---
 
-## Directory Structure
+## Actual File Status
+
+| File | Status | Notes |
+|------|--------|-------|
+| `Sources/MacRingCore/UI/RingGeometry.swift` | Scaffold | fatalError stubs, interface defined |
+| `Sources/MacRingCore/App/.gitkeep` | Planned | MacRingApp.swift, AppDelegate.swift |
+| `Tests/MacRingCoreTests/RingGeometryTests.swift` | Complete | 30 tests, Swift Testing framework |
+
+All other UI files (RingWindow, Configurator, MenuBar, Onboarding, Settings) are planned but not yet created.
+
+---
+
+## Planned Directory Structure
 
 ```
-MacRing/
+Sources/MacRingCore/
   App/
     MacRingApp.swift            -- SwiftUI App entry, service init
     AppDelegate.swift           -- Accessibility request, EventTap, NSWorkspace
   UI/
+    RingGeometry.swift          -- EXISTS (scaffold with fatalError stubs)
     Ring/
       RingWindow.swift          -- NSPanel (non-activating, floating, transparent)
       RingView.swift            -- Radial ring (glassmorphism, spring anim)
@@ -61,7 +75,7 @@ MacRing/
 
 ---
 
-## Ring Geometry
+## Ring Geometry (Scaffold Exists)
 
 | Property | Small | Medium (default) | Large |
 |----------|-------|-------------------|-------|
@@ -72,12 +86,22 @@ MacRing/
 **Slot selection math:**
 ```
 selectedSlot = floor((atan2(dy, dx) + 2pi) % 2pi / slotAngle)
-dead zone    = sqrt(dx^2 + dy^2) < 35px --> cancel
+dead zone    = sqrt(dx^2 + dy^2) <= 35px --> cancel (returns nil)
 ```
+
+**RingGeometry public interface** (all stubs, fatalError):
+- `outerRadius` -- half diameter
+- `slotAngularWidth` -- 2pi / slotCount
+- `selectedSlot(for: CGPoint) -> Int?` -- nil if dead zone
+- `slotAngle(for: Int) -> CGFloat` -- radians
+- `slotCenter(for: Int) -> CGPoint` -- at mid-radius
+- `isInRingArea(point: CGPoint) -> Bool` -- between dead zone and outer radius
+
+**RingSize enum** (stub): `.small` (220), `.medium` (280), `.large` (340)
 
 ---
 
-## Ring Animations
+## Ring Animations (Planned)
 
 | Animation | Spec |
 |-----------|------|
@@ -88,7 +112,7 @@ dead zone    = sqrt(dx^2 + dy^2) < 35px --> cancel
 
 ---
 
-## UI Component Hierarchy
+## UI Component Hierarchy (Planned)
 
 ```
 MacRingApp
@@ -100,7 +124,7 @@ MacRingApp
   |     +-- Settings link, Quit
   +-- RingWindow (NSPanel, shown on trigger)
   |     +-- RingView
-  |           +-- SlotView x4/6/8 (radial layout)
+  |           +-- SlotView x4/6/8 (radial layout, uses RingGeometry)
   |           +-- Dead zone center (cancel)
   +-- ConfiguratorWindow (user-initiated)
   |     +-- ActionToolbox (left pane)
@@ -108,58 +132,8 @@ MacRingApp
   |     +-- SlotEditor (detail panel)
   |     +-- ProfileListView (sidebar)
   +-- SettingsWindow (user-initiated)
-  |     +-- GeneralSettingsView
-  |     +-- AppearanceSettingsView
-  |     +-- TriggerSettingsView
-  |     +-- AISettingsView
-  |     +-- MCPSettingsView
-  |     +-- NLConfigView
-  |     +-- SemanticInsightsView
   +-- OnboardingFlow (first launch only)
-        +-- WelcomeView
-        +-- AccessibilitySetupView
-        +-- MouseSetupView
-        +-- MCPSetupView (optional)
-        +-- TutorialView
 ```
-
----
-
-## Key View Responsibilities
-
-### Ring Module
-
-| View | Purpose | Critical Path |
-|------|---------|--------------|
-| `RingWindow` | NSPanel lifecycle, cursor positioning | <50ms appear |
-| `RingView` | Radial layout, glassmorphism, animations | 60fps render |
-| `RingViewModel` | State machine: hidden/visible/selecting, slot math | <5ms selection |
-| `SlotView` | Icon + label, color by action type, highlight state | -- |
-
-### Configurator Module
-
-| View | Purpose |
-|------|---------|
-| `ConfiguratorWindow` | Split-pane layout, window lifecycle |
-| `ActionToolbox` | Browsable/searchable action palette, drag source |
-| `RingPreview` | Production-geometry ring, drop targets, visual feedback |
-| `SlotEditor` | Action-type-specific parameter editing, validation |
-| `ProfileListView` | Create/duplicate/delete profiles, assign to apps |
-| `MCPToolBrowser` | MCP server tools list, install, drag to slot |
-| `KeyRecorderView` | Capture key combo, display "Cmd+Shift+F", validate |
-| `DragDropManager` | UTType registration, reorder, trash area |
-
-### Onboarding Module (7 steps)
-
-| Step | View | Gate |
-|------|------|------|
-| 1 | WelcomeView | None |
-| 2 | AccessibilitySetupView | Permission granted |
-| 3 | MouseSetupView | Trigger button recorded |
-| 4 | Auto-detection | <3s time-to-useful |
-| 5 | AI Setup (optional) | API key or skip |
-| 6 | MCP Setup (optional) | Connect or skip |
-| 7 | TutorialView | Interactive demo complete |
 
 ---
 
