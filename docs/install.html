@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Install ActionRing</title>
+<style>
+  :root {
+    --bg: #0c0e14;
+    --bg-soft: #12151f;
+    --panel: rgba(255,255,255,0.04);
+    --border: rgba(255,255,255,0.09);
+    --text: #e7e9ee;
+    --muted: #9aa1b1;
+    --faint: #6b7283;
+    --accent: #6ea8fe;
+    --accent2: #b794f6;
+    --green: #5fd0a0;
+    --amber: #f6ad55;
+    --code-bg: #0a0c12;
+    --radius: 14px;
+    --maxw: 760px;
+  }
+  * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; scroll-padding-top: 24px; }
+  body {
+    margin: 0; background: var(--bg); color: var(--text);
+    font: 15px/1.65 -apple-system, BlinkMacSystemFont, "SF Pro Text", "Inter", system-ui, sans-serif;
+    -webkit-font-smoothing: antialiased;
+  }
+  a { color: var(--accent); text-decoration: none; }
+  a:hover { text-decoration: underline; }
+  code { font-family: "SF Mono", ui-monospace, "JetBrains Mono", Menlo, monospace; font-size: 0.86em; }
+  :not(pre) > code {
+    background: rgba(255,255,255,0.07); padding: 0.12em 0.4em; border-radius: 6px;
+    border: 1px solid var(--border); color: #d8def0;
+  }
+  pre {
+    background: var(--code-bg); border: 1px solid var(--border); border-radius: 12px;
+    padding: 14px 16px; overflow-x: auto; line-height: 1.5; font-size: 13px;
+  }
+  pre code { color: #c5cde0; }
+
+  .wrap { max-width: var(--maxw); margin: 0 auto; padding: 56px 24px 96px; }
+
+  .brand { display:flex; align-items:center; gap:12px; margin-bottom: 8px; }
+  .brand .dot {
+    width: 34px; height: 34px; border-radius: 50%;
+    background: conic-gradient(from -22.5deg,#6ea8fe 0 45deg,#5fd0a0 45deg 90deg,#b794f6 90deg 135deg,#f6ad55 135deg 180deg,#fc8181 180deg 225deg,#f6e05e 225deg 270deg,#4fd1c5 270deg 315deg,#9f7aea 315deg 360deg);
+    -webkit-mask: radial-gradient(circle, transparent 32%, #000 34%);
+            mask: radial-gradient(circle, transparent 32%, #000 34%);
+  }
+  .brand b { font-size: 19px; letter-spacing: -0.01em; }
+  h1 { font-size: 30px; letter-spacing: -0.02em; margin: 18px 0 6px; }
+  .lede { color: var(--muted); font-size: 16px; margin: 0 0 22px; }
+  h2 {
+    font-size: 19px; letter-spacing: -0.01em; margin: 40px 0 12px;
+    padding-top: 18px; border-top: 1px solid var(--border);
+  }
+  h2 .num {
+    display:inline-flex; align-items:center; justify-content:center;
+    width: 26px; height: 26px; border-radius: 50%; margin-right: 10px;
+    background: rgba(110,168,254,0.16); color: var(--accent);
+    font-size: 13px; font-weight: 700; vertical-align: 2px;
+  }
+  h3 { font-size: 15px; margin: 22px 0 6px; color: var(--text); }
+  ul, ol { padding-left: 22px; }
+  li { margin: 5px 0; }
+
+  .meta {
+    display:flex; flex-wrap:wrap; gap: 8px; margin: 0 0 26px;
+  }
+  .chip {
+    background: var(--panel); border: 1px solid var(--border);
+    border-radius: 999px; padding: 5px 12px; font-size: 12.5px; color: var(--muted);
+  }
+  .chip b { color: var(--text); font-weight: 600; }
+
+  .note, .warn, .tip {
+    border: 1px solid var(--border); border-radius: var(--radius);
+    padding: 12px 16px; margin: 16px 0; background: var(--panel); font-size: 14px;
+  }
+  .note { border-left: 3px solid var(--accent); }
+  .warn { border-left: 3px solid var(--amber); }
+  .tip  { border-left: 3px solid var(--green); }
+  .note .t, .warn .t, .tip .t {
+    font-weight: 700; font-size: 12px; text-transform: uppercase;
+    letter-spacing: 0.06em; display:block; margin-bottom: 4px;
+  }
+  .note .t { color: var(--accent); }
+  .warn .t { color: var(--amber); }
+  .tip  .t { color: var(--green); }
+
+  .ascii {
+    background: var(--code-bg); border: 1px solid var(--border); border-radius: 12px;
+    padding: 14px 16px; color: var(--muted); font-family: "SF Mono", ui-monospace, Menlo, monospace;
+    font-size: 12.5px; line-height: 1.5; white-space: pre; overflow-x: auto;
+  }
+  .done {
+    margin-top: 30px; padding: 16px 18px; border-radius: var(--radius);
+    background: rgba(95,208,160,0.08); border: 1px solid rgba(95,208,160,0.25);
+    color: var(--text); font-size: 15px;
+  }
+  footer {
+    margin-top: 60px; padding-top: 18px; border-top: 1px solid var(--border);
+    color: var(--faint); font-size: 13px;
+  }
+  .tro b { color: var(--text); }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <div class="brand"><span class="dot"></span><b>ActionRing</b></div>
+  <h1>Installing ActionRing</h1>
+  <p class="lede">A 2‑minute guide to getting the ring running on your Mac.</p>
+
+  <div class="meta">
+    <span class="chip"><b>Requires</b> · macOS 14 (Sonoma)+</span>
+    <span class="chip"><b>Best with</b> · a mouse that has a side button</span>
+    <span class="chip"><b>You need</b> · the <code>ActionRing‑&lt;version&gt;.dmg</code> file</span>
+  </div>
+
+  <div class="note">
+    <span class="t">Why the extra clicks?</span>
+    ActionRing isn't notarized by Apple yet, so macOS shows an "unidentified developer"
+    warning the <em>first</em> time you open it. The steps below are the normal,
+    Apple‑supported way to open such an app — you only do them <b>once</b>.
+  </div>
+
+  <h2><span class="num">1</span>Open the disk image</h2>
+  <p>Double‑click <code>ActionRing‑&lt;version&gt;.dmg</code>. A window opens showing
+  <b>ActionRing</b> and an <b>Applications</b> shortcut.</p>
+
+  <h2><span class="num">2</span>Drag it into Applications</h2>
+  <p>Drag the <b>ActionRing</b> icon onto the <b>Applications</b> folder in the same window.</p>
+  <div class="ascii">┌─────────────────────────────────────┐
+│   [ ActionRing ]  ───▶  [ Applications ]
+└─────────────────────────────────────┘
+        drag this        onto this</div>
+  <p>You can then eject the disk image (drag it to the Trash, or click ⏏ in Finder).</p>
+
+  <h2><span class="num">3</span>Open it the first time</h2>
+  <p>Don't double‑click yet — macOS will block it. Instead:</p>
+  <ol>
+    <li>Open your <b>Applications</b> folder.</li>
+    <li><b>Right‑click</b> (or hold <b>Control</b> and click) <b>ActionRing</b>.</li>
+    <li>Choose <b>Open</b>.</li>
+    <li>In the dialog, click <b>Open</b> again.</li>
+  </ol>
+  <p>That's the one‑time unlock. After this it opens normally — double‑click, Spotlight, anything.</p>
+  <div class="tip">
+    <span class="t">No "Open" button?</span>
+    On newer macOS the dialog may only show "Done". Go to
+    <b>System Settings → Privacy &amp; Security</b>, scroll down, and click
+    <b>"Open Anyway"</b> next to the ActionRing message.
+    <div style="margin-top:10px">Or unlock it instantly in Terminal:</div>
+    <pre><code>xattr -dr com.apple.quarantine /Applications/ActionRing.app</code></pre>
+  </div>
+
+  <h2><span class="num">4</span>Grant Accessibility (required)</h2>
+  <p>ActionRing detects your trigger button with a system <em>event tap</em>, which macOS
+  gates behind Accessibility. <b>Without this, the ring won't appear when you press the button.</b></p>
+  <ol>
+    <li><b>System Settings → Privacy &amp; Security → Accessibility</b></li>
+    <li>Find <b>ActionRing</b> and turn its switch <b>on</b>.
+      <br/><span style="color:var(--muted)">Not listed? Click <b>+</b>, pick <code>ActionRing</code> from Applications, then enable it.</span></li>
+    <li>If the trigger still doesn't respond, <b>quit and reopen</b> ActionRing.</li>
+  </ol>
+  <div class="note">
+    <span class="t">Privacy</span>
+    This is the <b>only</b> permission ActionRing asks for. It makes no network calls and
+    never reads your typed text, window titles, or file contents.
+  </div>
+
+  <h2><span class="num">5</span>Find it and try it</h2>
+  <p>ActionRing has <b>no Dock icon</b> — it lives in the <b>menu bar</b> (top‑right, look for the ⊕ ring icon).</p>
+  <ul>
+    <li>Click the menu‑bar icon → <b>Preview Ring</b> to watch it appear and follow your cursor (no permission needed for the preview).</li>
+    <li>Then <b>hold the trigger button</b> — by default the <b>side/thumb button (Button 4)</b>. The ring appears at your cursor; drag toward a slice and release to fire it, or release in the center to cancel.</li>
+    <li>Open the menu‑bar icon → <b>Settings…</b> to change the trigger (there's a <b>Record from mouse</b> button), ring size, and slot count.</li>
+  </ul>
+
+  <div class="done">🎉 <b>You're done.</b> Hold your side button anywhere and the ring is there.</div>
+
+  <h2>Troubleshooting</h2>
+  <div class="tro">
+    <h3>"ActionRing is damaged and can't be opened."</h3>
+    <p>Gatekeeper on a quarantined, non‑notarized app — it isn't actually damaged. Run:</p>
+    <pre><code>xattr -dr com.apple.quarantine /Applications/ActionRing.app</code></pre>
+    <p>then open it again (or re‑do step 3's right‑click → Open).</p>
+
+    <h3>Menu‑bar icon is there, but pressing the button does nothing.</h3>
+    <p>Accessibility isn't active. Re‑check step 4. A reliable reset:</p>
+    <ol>
+      <li>Privacy &amp; Security → Accessibility → toggle ActionRing <b>off</b>, then <b>on</b>.</li>
+      <li>Quit ActionRing (menu‑bar icon → Quit) and reopen it.</li>
+    </ol>
+
+    <h3>The ring flashes and disappears instantly / looks faint.</h3>
+    <p>Make sure you're running the copy in <code>/Applications</code> (step 2), not an older one.
+    Quit any duplicate instances and reopen the installed one.</p>
+
+    <h3>My mouse button isn't detected.</h3>
+    <p>Open Settings → <b>Record from mouse</b>, then press the button you want. Avoid binding
+    left/right click (Button 1/2) — use a side button so normal clicking still works.</p>
+
+    <h3>How do I uninstall?</h3>
+    <p>Quit ActionRing, then drag <code>/Applications/ActionRing.app</code> to the Trash. To also remove settings:</p>
+    <pre><code>rm -rf ~/Library/Application\ Support/ActionRing</code></pre>
+  </div>
+
+  <h2>Building from source (developers)</h2>
+  <p>If you have the repo and a Swift 6 toolchain instead of a <code>.dmg</code>:</p>
+  <pre><code>make install     # build a release .app and copy it to /Applications
+make bundle      # just build ./ActionRing.app
+make dmg         # build a shareable ./dist/ActionRing-&lt;version&gt;.dmg</code></pre>
+  <p>Then grant Accessibility as in step 4. See <a href="ActionRing.md">ActionRing.md</a> for the full reference.</p>
+
+  <div class="warn">
+    <span class="t">For whoever shipped this</span>
+    The "unidentified developer" prompt disappears entirely if the build is
+    <b>signed with a Developer ID and notarized by Apple</b> (requires a paid Apple
+    Developer account). Until then, the right‑click → Open / "Open Anyway" flow above
+    is expected and safe for a build you trust.
+  </div>
+
+  <footer>ActionRing · installation guide · macOS 14+ · no network, no telemetry</footer>
+</div>
+</body>
+</html>

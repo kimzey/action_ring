@@ -3,33 +3,46 @@
 import PackageDescription
 
 let package = Package(
-    name: "MacRing",
+    name: "ActionRing",
     platforms: [
         .macOS(.v14)
     ],
     products: [
-        .library(
-            name: "MacRingCore",
-            targets: ["MacRingCore"]
-        )
+        .library(name: "ActionRingCore", targets: ["ActionRingCore"]),
+        .executable(name: "ActionRing", targets: ["ActionRing"])
     ],
-    dependencies: [
-        // Add external dependencies here when needed:
-        // .package(url: "https://github.com/groue/GRDB.swift.git", from: "6.0.0")
-    ],
+    dependencies: [],
     targets: [
         .target(
-            name: "MacRingCore",
+            name: "ActionRingCore",
             dependencies: [],
-            path: "Sources/MacRingCore",
+            path: "Sources/ActionRingCore",
+            swiftSettings: [
+                .swiftLanguageMode(.v5)
+            ]
+        ),
+        .executableTarget(
+            name: "ActionRing",
+            dependencies: ["ActionRingCore"],
+            path: "Sources/ActionRing",
+            swiftSettings: [
+                .swiftLanguageMode(.v5)
+            ]
+        ),
+        // Lightweight, dependency-free invariant checker. Runs the core logic
+        // tests via `swift run ARCheck` in environments without Xcode/XCTest.
+        .executableTarget(
+            name: "ARCheck",
+            dependencies: ["ActionRingCore"],
+            path: "Sources/ARCheck",
             swiftSettings: [
                 .swiftLanguageMode(.v5)
             ]
         ),
         .testTarget(
-            name: "MacRingCoreTests",
-            dependencies: ["MacRingCore"],
-            path: "Tests/MacRingCoreTests",
+            name: "ActionRingCoreTests",
+            dependencies: ["ActionRingCore"],
+            path: "Tests/ActionRingCoreTests",
             swiftSettings: [
                 .swiftLanguageMode(.v5)
             ]
