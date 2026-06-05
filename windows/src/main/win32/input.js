@@ -102,6 +102,8 @@ function send(events) {
  * @param {object} mods      { ctrl, alt, shift, win } booleans
  */
 function sendShortcut(vk, mods = {}) {
+  // Bind the Win32 funcs BEFORE building events — keyEvent() needs MapVirtualKeyW.
+  if (!ensureBindings()) return false;
   const downMods = [];
   if (mods.ctrl) downMods.push(C.VK_CONTROL);
   if (mods.alt) downMods.push(C.VK_MENU);
@@ -117,11 +119,13 @@ function sendShortcut(vk, mods = {}) {
 
 /** Tap a single key with no modifiers (used for media/volume VKs). */
 function tapKey(vk) {
+  if (!ensureBindings()) return false;
   return send([keyEvent(vk, false), keyEvent(vk, true)]);
 }
 
 /** Type a Unicode string via KEYEVENTF_UNICODE (handles emoji/surrogates). */
 function typeText(text) {
+  if (!ensureBindings()) return false; // also needed for the INPUT struct sizeof
   const events = [];
   for (let i = 0; i < text.length; i++) {
     const cu = text.charCodeAt(i);
