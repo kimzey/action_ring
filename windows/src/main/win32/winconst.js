@@ -1,0 +1,70 @@
+'use strict';
+// Win32 constants used across the native layer.
+
+module.exports = {
+  // SetWindowsHookEx
+  WH_MOUSE_LL: 14,
+  HC_ACTION: 0,
+
+  // Low-level mouse messages (wParam)
+  WM_MOUSEMOVE: 0x0200,
+  WM_LBUTTONDOWN: 0x0201,
+  WM_LBUTTONUP: 0x0202,
+  WM_RBUTTONDOWN: 0x0204,
+  WM_RBUTTONUP: 0x0205,
+  WM_MBUTTONDOWN: 0x0207,
+  WM_MBUTTONUP: 0x0208,
+  WM_MOUSEWHEEL: 0x020a,
+  WM_XBUTTONDOWN: 0x020b,
+  WM_XBUTTONUP: 0x020c,
+
+  // MSLLHOOKSTRUCT.flags
+  LLMHF_INJECTED: 0x00000001,
+
+  // mouseData HIWORD for WM_XBUTTON*
+  XBUTTON1: 1,
+  XBUTTON2: 2,
+
+  // SendInput
+  INPUT_MOUSE: 0,
+  INPUT_KEYBOARD: 1,
+  KEYEVENTF_EXTENDEDKEY: 0x0001,
+  KEYEVENTF_KEYUP: 0x0002,
+  KEYEVENTF_UNICODE: 0x0004,
+  KEYEVENTF_SCANCODE: 0x0008,
+  MAPVK_VK_TO_VSC: 0,
+
+  // Virtual keys (modifiers + media; full map lives in shared/keymap.js)
+  VK_SHIFT: 0x10,
+  VK_CONTROL: 0x11,
+  VK_MENU: 0x12, // Alt
+  VK_LWIN: 0x5b,
+  VK_VOLUME_MUTE: 0xad,
+  VK_VOLUME_DOWN: 0xae,
+  VK_VOLUME_UP: 0xaf,
+  VK_MEDIA_NEXT_TRACK: 0xb0,
+  VK_MEDIA_PREV_TRACK: 0xb1,
+  VK_MEDIA_STOP: 0xb2,
+  VK_MEDIA_PLAY_PAUSE: 0xb3,
+
+  // Process access
+  PROCESS_QUERY_LIMITED_INFORMATION: 0x1000,
+
+  // GetWindowLongPtr
+  GWL_STYLE: -16,
+  GWL_EXSTYLE: -20,
+  WS_CAPTION: 0x00c00000,
+  WS_EX_TOPMOST: 0x00000008,
+
+  // SHQueryUserNotificationState
+  QUNS_NOT_PRESENT: 1,
+  QUNS_BUSY: 2,
+  QUNS_RUNNING_D3D_FULL_SCREEN: 3,
+  QUNS_PRESENTATION_MODE: 4,
+  QUNS_ACCEPTS_NOTIFICATIONS: 5,
+  QUNS_QUIET_TIME: 6,
+  QUNS_APP: 7,
+
+  // MonitorFromWindow
+  MONITOR_DEFAULTTONEAREST: 2,
+};

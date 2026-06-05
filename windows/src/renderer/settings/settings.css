@@ -1,0 +1,150 @@
+/* ActionRing Settings — dark theme */
+* { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI Variable Text', 'Segoe UI', -apple-system, system-ui, sans-serif; }
+
+:root {
+  --bg: #1e1e22;
+  --card: #28282e;
+  --card-2: #313138;
+  --border: #3c3c44;
+  --text: #ececf0;
+  --text-2: #9a9aa4;
+  --accent: #0a84ff;
+  --danger: #ff453a;
+}
+
+html, body { background: var(--bg); color: var(--text); height: 100%; }
+body { display: flex; flex-direction: column; overflow: hidden; }
+
+/* tabs */
+#tabs { display: flex; gap: 4px; padding: 10px 12px 0; border-bottom: 1px solid var(--border); }
+.tab {
+  background: none; border: none; color: var(--text-2); font-size: 13px;
+  padding: 8px 14px; cursor: pointer; border-radius: 8px 8px 0 0;
+}
+.tab.active { color: var(--text); background: var(--card); }
+
+.tab-page { display: none; flex: 1; overflow-y: auto; padding: 14px; }
+.tab-page.active { display: block; }
+
+/* cards */
+.card { background: var(--card); border: 1px solid var(--border); border-radius: 10px; padding: 12px 14px; margin-bottom: 12px; }
+.card h3 { font-size: 12px; text-transform: uppercase; letter-spacing: 0.06em; color: var(--text-2); margin-bottom: 10px; }
+
+.row { display: flex; align-items: center; gap: 10px; padding: 5px 0; }
+.row-label { flex: 1; font-size: 13px; }
+.caption { font-size: 11px; color: var(--text-2); margin-top: 4px; line-height: 1.45; }
+.spacer { flex: 1; }
+
+/* controls */
+select, input[type="text"], input[type="number"], textarea {
+  background: var(--card-2); color: var(--text); border: 1px solid var(--border);
+  border-radius: 6px; padding: 5px 8px; font-size: 13px; outline: none;
+}
+select:focus, input:focus, textarea:focus { border-color: var(--accent); }
+input[type="number"] { width: 64px; }
+textarea { width: 100%; min-height: 90px; font-family: Consolas, monospace; font-size: 12px; resize: vertical; }
+
+.btn {
+  background: var(--card-2); color: var(--text); border: 1px solid var(--border);
+  border-radius: 6px; padding: 6px 12px; font-size: 12.5px; cursor: pointer;
+}
+.btn:hover { background: #3a3a42; }
+.btn.primary { background: var(--accent); border-color: var(--accent); color: #fff; }
+.btn.danger { color: var(--danger); }
+.btn:disabled { opacity: 0.5; cursor: default; }
+
+/* switches */
+.switch { appearance: none; width: 36px; height: 20px; border-radius: 10px; background: var(--card-2); border: 1px solid var(--border); position: relative; cursor: pointer; transition: background 150ms; flex: none; }
+.switch::after { content: ''; position: absolute; top: 2px; left: 2px; width: 14px; height: 14px; border-radius: 50%; background: var(--text-2); transition: transform 150ms, background 150ms; }
+.switch:checked { background: var(--accent); border-color: var(--accent); }
+.switch:checked::after { transform: translateX(16px); background: #fff; }
+.switch.mini { width: 28px; height: 16px; }
+.switch.mini::after { width: 10px; height: 10px; }
+.switch.mini:checked::after { transform: translateX(12px); }
+
+/* profile rows */
+.profile-row { display: flex; align-items: center; gap: 10px; padding: 7px 4px; border-bottom: 1px solid var(--border); }
+.profile-row:last-child { border-bottom: none; }
+.profile-row.disabled { opacity: 0.55; }
+.profile-row .lock { width: 28px; text-align: center; color: var(--text-2); flex: none; }
+.profile-name { font-size: 13px; font-weight: 500; }
+.profile-sub { font-size: 10.5px; color: var(--text-2); }
+.badge { font-size: 10px; padding: 2px 7px; border-radius: 999px; background: var(--card-2); color: var(--text-2); flex: none; }
+.icon-btn { background: none; border: none; color: var(--text-2); cursor: pointer; font-size: 14px; padding: 4px; border-radius: 5px; flex: none; }
+.icon-btn:hover { background: var(--card-2); color: var(--text); }
+.icon-btn.danger:hover { color: var(--danger); }
+
+.toolbar { display: flex; gap: 8px; padding: 2px 2px 10px; }
+
+/* hook status */
+#g-hook-icon { font-size: 11px; }
+#g-hook-icon.ok { color: #30d158; }
+#g-hook-icon.warn { color: #ff9f0a; }
+#g-hook-icon.bad { color: var(--danger); }
+
+/* modals */
+#modal-root:empty { display: none; }
+.modal-backdrop {
+  position: fixed; inset: 0; background: rgba(0, 0, 0, 0.55);
+  display: flex; align-items: center; justify-content: center; z-index: 10;
+}
+.modal {
+  background: var(--bg); border: 1px solid var(--border); border-radius: 12px;
+  width: 460px; max-width: calc(100vw - 40px); max-height: calc(100vh - 60px);
+  display: flex; flex-direction: column; box-shadow: 0 18px 50px rgba(0,0,0,0.5);
+}
+.modal-header { display: flex; align-items: center; gap: 8px; padding: 13px 16px; border-bottom: 1px solid var(--border); }
+.modal-header h2 { font-size: 14px; flex: 1; }
+.modal-body { padding: 14px 16px; overflow-y: auto; flex: 1; }
+.modal-footer { display: flex; gap: 8px; justify-content: flex-end; padding: 12px 16px; border-top: 1px solid var(--border); }
+
+.field { margin-bottom: 14px; }
+.field > label { display: block; font-size: 12px; font-weight: 600; margin-bottom: 6px; }
+.field input[type="text"] { width: 100%; }
+
+/* segmented control */
+.segmented { display: inline-flex; border: 1px solid var(--border); border-radius: 7px; overflow: hidden; }
+.segmented button { background: var(--card-2); border: none; color: var(--text-2); font-size: 12px; padding: 5px 14px; cursor: pointer; }
+.segmented button.active { background: var(--accent); color: #fff; }
+
+/* slot grid */
+.slot-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.slot-cell {
+  display: flex; align-items: center; gap: 10px; padding: 8px;
+  border: 1px solid var(--border); border-radius: 9px; background: var(--card);
+  cursor: pointer; text-align: left;
+}
+.slot-cell:hover { border-color: var(--accent); }
+.slot-cell .glyph { width: 28px; height: 28px; border-radius: 7px; background: var(--card-2); display: flex; align-items: center; justify-content: center; font-size: 15px; flex: none; }
+.slot-cell .meta { flex: 1; min-width: 0; }
+.slot-cell .meta .t { font-size: 12px; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.slot-cell .meta .d { font-size: 10.5px; color: var(--text-2); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.slot-cell .num { font-size: 10.5px; color: var(--text-2); flex: none; }
+.slot-cell.dimmed { opacity: 0.5; }
+
+/* color swatches */
+.swatches { display: flex; gap: 8px; flex-wrap: wrap; }
+.swatch { width: 24px; height: 24px; border-radius: 50%; cursor: pointer; border: 2px solid transparent; }
+.swatch.selected { border-color: #fff; }
+
+/* icon picker */
+.icon-grid { display: grid; grid-template-columns: repeat(8, 1fr); gap: 6px; max-height: 140px; overflow-y: auto; background: var(--card); border-radius: 8px; padding: 8px; margin-top: 8px; }
+.icon-cell { width: 34px; height: 30px; display: flex; align-items: center; justify-content: center; font-size: 15px; border-radius: 6px; cursor: pointer; border: 1px solid transparent; background: none; color: var(--text); }
+.icon-cell:hover { background: var(--card-2); }
+.icon-cell.selected { background: rgba(10, 132, 255, 0.3); border-color: var(--accent); }
+
+/* app picker list */
+.app-search { width: 100%; margin-bottom: 10px; }
+.app-list { max-height: 260px; overflow-y: auto; border: 1px solid var(--border); border-radius: 8px; }
+.app-item { display: block; width: 100%; text-align: left; padding: 8px 12px; background: none; border: none; border-bottom: 1px solid var(--border); cursor: pointer; color: var(--text); }
+.app-item:last-child { border-bottom: none; }
+.app-item:hover { background: var(--card-2); }
+.app-item .n { font-size: 13px; }
+.app-item .b { font-size: 10.5px; color: var(--text-2); }
+.manual-row { display: flex; gap: 8px; margin-top: 10px; }
+.manual-row input { flex: 1; }
+
+/* modifier toggles */
+.mod-toggles { display: flex; gap: 6px; }
+.mod-toggles button { min-width: 44px; padding: 5px 10px; background: var(--card-2); border: 1px solid var(--border); color: var(--text-2); border-radius: 6px; cursor: pointer; font-size: 12px; }
+.mod-toggles button.active { background: var(--accent); border-color: var(--accent); color: #fff; }
