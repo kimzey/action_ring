@@ -1,0 +1,141 @@
+/* ActionRing overlay — visual port of RingView.swift (dark glass theme).
+   Numbers from the spec: backdrop stroke white .16 / inner ring black .25,
+   drop shadow 0 10px 28px black .4, wedge gap 0.035rad, selected glow 12px,
+   icon 18→21, label 9.5, content scale 1.12, hub = deadZone*2. */
+
+* { margin: 0; padding: 0; box-sizing: border-box; user-select: none; }
+
+html, body {
+  width: 100%; height: 100%;
+  background: transparent;
+  overflow: hidden;
+  font-family: 'Segoe UI Variable Text', 'Segoe UI', -apple-system, system-ui, sans-serif;
+  cursor: default;
+}
+
+#stage {
+  width: 100%; height: 100%;
+  display: flex; align-items: center; justify-content: center;
+}
+
+/* appear/dismiss: spring(response .26, damping .7) ≈ 260ms with overshoot */
+#ring-container {
+  position: relative;
+  transform: scale(0.7);
+  opacity: 0;
+  transition:
+    transform 260ms cubic-bezier(0.18, 0.89, 0.32, 1.15),
+    opacity 200ms ease-out;
+  will-change: transform, opacity;
+}
+#ring-container.visible {
+  transform: scale(1);
+  opacity: 1;
+}
+
+#ring-svg { display: block; overflow: visible; }
+
+/* backdrop circle — .ultraThinMaterial approximation (no true behind-window
+   blur in Electron; translucent dark glass instead) */
+.backdrop {
+  fill: rgba(32, 32, 36, 0.55);
+  stroke: rgba(255, 255, 255, 0.16);
+  stroke-width: 1;
+  filter: drop-shadow(0 10px 28px rgba(0, 0, 0, 0.4));
+}
+.backdrop-inner {
+  fill: none;
+  stroke: rgba(0, 0, 0, 0.25);
+  stroke-width: 1;
+}
+
+/* wedges — selection spring(response .22, damping .72) ≈ 220ms */
+.wedge {
+  fill: rgba(255, 255, 255, 0.05);
+  stroke: rgba(255, 255, 255, 0.08);
+  stroke-width: 0.75;
+  transition: fill 160ms ease-out, stroke 160ms ease-out, filter 160ms ease-out;
+}
+.wedge.selected {
+  fill-opacity: 0.95;
+  stroke-width: 2;
+}
+
+/* slot content (icon + label), positioned absolutely at viewPosition */
+#slot-layer { position: absolute; inset: 0; pointer-events: none; }
+.slot {
+  position: absolute;
+  display: flex; flex-direction: column; align-items: center; gap: 3px;
+  transform: translate(-50%, -50%) scale(1);
+  transition: transform 220ms cubic-bezier(0.2, 0.9, 0.3, 1.1);
+  text-align: center;
+}
+.slot.selected { transform: translate(-50%, -50%) scale(1.12); }
+.slot.empty:not(.selected) { opacity: 0.5; }
+
+.slot-icon {
+  font-size: 18px;
+  line-height: 1.2;
+  color: rgba(255, 255, 255, 0.9);
+  filter: grayscale(1) brightness(1.35);
+  transition: font-size 160ms ease-out, filter 160ms ease-out;
+}
+.slot.selected .slot-icon {
+  font-size: 21px;
+  color: #fff;
+  filter: none;
+  text-shadow: 0 0 3px rgba(0, 0, 0, 0.35);
+}
+.slot.empty .slot-icon { color: rgba(255, 255, 255, 0.3); }
+
+.slot-label {
+  font-size: 9.5px;
+  font-weight: 400;
+  color: rgba(255, 255, 255, 0.55);
+  white-space: nowrap;
+}
+.slot.selected .slot-label {
+  font-weight: 600;
+  color: #fff;
+  text-shadow: 0 0 3px rgba(0, 0, 0, 0.35);
+}
+
+/* center hub — .regularMaterial approximation; cancel ✕ / action preview */
+#hub {
+  position: absolute;
+  left: 50%; top: 50%;
+  transform: translate(-50%, -50%);
+  border-radius: 50%;
+  background: rgba(46, 46, 52, 0.78);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  gap: 2px;
+  padding: 4px;
+  text-align: center;
+}
+#hub-icon {
+  font-size: 12px;
+  font-weight: 700;
+  color: rgba(255, 255, 255, 0.55);
+  line-height: 1.1;
+}
+#hub.has-selection #hub-icon {
+  font-size: 13px;
+  font-weight: 600;
+  filter: none;
+}
+#hub-label {
+  font-size: 8.5px;
+  font-weight: 500;
+  color: rgba(255, 255, 255, 0.35);
+  max-width: 90%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+#hub.has-selection #hub-label {
+  font-size: 10px;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.92);
+}

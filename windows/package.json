@@ -1,0 +1,38 @@
+{
+  "name": "action-ring-windows",
+  "version": "1.0.0",
+  "description": "ActionRing for Windows — context-aware radial command ring. Hold a mouse button → ring at cursor → drag → release to fire.",
+  "main": "src/main/index.js",
+  "scripts": {
+    "start": "electron .",
+    "preview": "electron . --preview",
+    "test": "node --test tests/*.test.js",
+    "dist": "electron-builder --win"
+  },
+  "author": "Pan Nitiyothin",
+  "license": "MIT",
+  "devDependencies": {
+    "electron": "^42.3.3",
+    "electron-builder": "^26.0.12"
+  },
+  "dependencies": {
+    "koffi": "^3.0.2",
+    "uiohook-napi": "^1.5.5"
+  },
+  "build": {
+    "appId": "com.pan.actionring",
+    "productName": "ActionRing",
+    "win": {
+      "target": "nsis",
+      "artifactName": "ActionRing-Setup-${version}.${ext}"
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true
+    },
+    "files": [
+      "src/**/*",
+      "assets/**/*"
+    ]
+  }
+}

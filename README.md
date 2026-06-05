@@ -2,6 +2,8 @@
 
 Turn **any** multi-button mouse into a context-aware radial command hub on macOS.
 
+> 🪟 **Windows?** There's a full port in [`windows/`](windows/README.md) (Electron + WH_MOUSE_LL) — same gestures, same profile JSON schema, Windows-native built-in shortcuts.
+
 Hold your chosen mouse button → a glassmorphic **Action Ring** appears at the cursor → drag toward a slot → release to fire. The ring's contents switch automatically based on the focused app (VS Code, Figma, your browser, the terminal…). Release in the center to cancel.
 
 > Works with Logitech, Razer, Keychron, SteelSeries, Apple Magic Mouse, or any generic mouse — it taps the normalized macOS HID stream via `CGEventTap`, so it isn't locked to one vendor's driver.
