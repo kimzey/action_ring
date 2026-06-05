@@ -1,63 +1,61 @@
-# ActionRing for Windows — dev/run convenience targets.
+# ActionRing for Windows — convenience targets.
 #
-# Works with GNU Make on Windows (Git Bash, MSYS2, choco/scoop `make`) and on
-# macOS/Linux for development. Every target just wraps an npm script, so if you
-# don't have `make` you can run the npm command shown in each comment directly.
+# These are thin wrappers over the npm scripts in package.json. Every recipe is
+# a single `npm` call (no shell builtins), so it behaves the same whether make
+# runs it through cmd, PowerShell, or sh.
+#
+# ⚠ Windows doesn't ship `make`. If `make` isn't found, just run the npm command
+#   shown next to each target below — e.g. `npm run pack` instead of `make pack`.
+#   (Get make on Windows via: scoop install make  /  choco install make  /
+#   it's bundled with Git Bash & MSYS2.)
 #
 #   make            show this help
-#   make install    install dependencies (run once)
-#   make run        start the tray app (hold Button 4 to open the ring)
-#   make preview    show the ring following your cursor (no trigger needed)
-#   make test       run the unit-test suite
-#   make dist       build the Windows installer (.exe) into ./dist
-#   make capture    render the ring to ./ring.png (visual sanity check)
-#   make clean      delete node_modules and ./dist
+#   make install    install dependencies          (npm install)
+#   make run        start the tray app             (npm start)
+#   make preview    preview the ring               (npm run preview)
+#   make test       run unit tests                 (npm test)
+#   make pack       portable build + release zip   (npm run pack)   ← recommended
+#   make dist       NSIS installer (.exe)          (npm run dist)
+#   make capture    snapshot ring.png              (npm run capture)
+#   make clean      remove node_modules + dist     (npm run clean)
 
-.PHONY: help install run start preview test dist capture clean
+.PHONY: help install run start preview test pack dist capture clean
 
-# Default: list the targets with their one-line descriptions.
-# (Plain text only — no shell-special chars like parentheses in echo, so this
-#  works under both /bin/sh and Windows cmd.)
 help:
-	@echo ActionRing for Windows - make targets:
-	@echo   make install    install dependencies   runs npm install
-	@echo   make run        start the tray app      runs npm start
-	@echo   make preview    preview the ring        runs npm run preview
-	@echo   make test       run unit tests          runs npm test
-	@echo   make dist       build the installer     runs npm run dist
-	@echo   make capture    snapshot ring.png       runs electron . --capture
-	@echo   make clean      remove node_modules and dist
+	@echo ActionRing for Windows - run a target with make, or the npm command if you have no make:
+	@echo   make install    npm install        install dependencies
+	@echo   make run         npm start         start the tray app
+	@echo   make preview     npm run preview   preview the ring
+	@echo   make test        npm test          run unit tests
+	@echo   make pack        npm run pack      portable build + zip  [recommended]
+	@echo   make dist        npm run dist      NSIS installer .exe
+	@echo   make capture     npm run capture   snapshot ring.png
+	@echo   make clean       npm run clean     remove node_modules and dist
 
-# Install dependencies. Run once after cloning (or after changing package.json).
 install:
 	npm install
 
-# Start the tray app. Lives in the system tray (no window); hold the trigger
-# button — default is the mouse side button (Button 4) — to open the ring.
-run: start
-start:
+run start:
 	npm start
 
-# Show the ring centered on screen, following your cursor, for ~10s. Needs no
-# mouse hook or permission — use it to confirm the look + tracking.
 preview:
 	npm run preview
 
-# Run the unit tests (geometry, profile schema, resolution chain, keymap, …).
 test:
 	npm test
 
-# Build a distributable NSIS installer (ActionRing-Setup-<version>.exe) in
-# ./dist. Best run ON Windows; cross-building the installer from macOS needs
-# extra tooling (wine), so prefer running this target on a Windows machine.
+# Reliable distributable: portable folder + release-ready .zip via
+# @electron/packager. Avoids electron-builder's one-time winCodeSign download.
+pack:
+	npm run pack
+
+# NSIS installer. First run downloads ~150 MB of build tools (winCodeSign/nsis)
+# from GitHub into a cache — slow once, fast after. See docs/RELEASES.md.
 dist:
 	npm run dist
 
-# Dev aid: render the preview ring and save it to ./ring.png, then exit.
 capture:
-	npx electron . --capture ring.png
+	npm run capture
 
-# Remove installed dependencies and build output (cross-platform via Node).
 clean:
-	node -e "const fs=require('fs');for(const d of ['node_modules','dist']){fs.rmSync(d,{recursive:true,force:true})}"
-	@echo Cleaned node_modules and dist.
+	npm run clean

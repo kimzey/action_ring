@@ -22,16 +22,23 @@ make run             # or: npm start   → tray app, hold Button 4 to open the r
 
 make preview         # or: npm run preview  → ring follows your cursor (no hook needed)
 make test            # or: npm test         → unit tests
+make pack            # or: npm run pack     → portable ZIP for release (recommended)
 make dist            # or: npm run dist     → ActionRing-Setup-<version>.exe (NSIS)
 make                 # list all targets
 ```
 
-No `make`? Every target is a one-line `npm` command — run `make` (or open the
-`Makefile`) to see them. No special permissions needed — Windows allows global
-low-level mouse hooks out of the box (the mac version needs Accessibility; here
-you just run it).
+**Windows doesn't ship `make`** — just use the `npm run …` command shown next to
+each target (run `make`, or open the `Makefile`, to see them all). No special
+permissions needed — Windows allows global low-level mouse hooks out of the box
+(the mac version needs Accessibility; here you just run it).
 
-📖 **Full install + run + troubleshooting guide:** [`docs/INSTALL.md`](docs/INSTALL.md) — covers both the installer (`.exe`) path and running from source.
+> **Building takes forever / seems stuck?** That's `npm run dist`
+> (electron-builder) doing a one-time ~150 MB toolchain download from GitHub —
+> slow, not frozen. Use **`npm run pack`** instead for a portable ZIP that skips
+> that download. Details: [`docs/RELEASES.md`](docs/RELEASES.md).
+
+📖 **Docs:** [`docs/INSTALL.md`](docs/INSTALL.md) (install + run + troubleshooting) ·
+[`docs/RELEASES.md`](docs/RELEASES.md) (build + publish a GitHub Release).
 
 ## How it's built
 
