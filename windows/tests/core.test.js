@@ -302,6 +302,24 @@ test('input.sendShortcut/tapKey/typeText never throw when bindings unavailable',
   });
 });
 
+// ---- hook re-arm: koffi type re-registration must not throw -------------------------------
+// Regression for the "Re-Arm permanently downgrades to listen-only" critical:
+// start() can run more than once (tray Re-Arm = stop()+start()), and koffi
+// throws on duplicate named-type registration. The LL-hook types/funcs must be
+// registered once per process, so repeated start()/stop() cycles never throw
+// from registration. On non-Windows start() returns 'uiohook'|'none' and never
+// touches koffi — the point is the cycle is safe and idempotent.
+test('MouseHook start/stop can cycle repeatedly without throwing', () => {
+  const { MouseHook } = require('../src/main/win32/hook');
+  const hook = new MouseHook();
+  assert.doesNotThrow(() => {
+    for (let i = 0; i < 3; i++) {
+      hook.start();
+      hook.stop();
+    }
+  });
+});
+
 // ---- script safety -------------------------------------------------------------------------
 
 // ---- sanitization / hardening (review findings) -------------------------------------

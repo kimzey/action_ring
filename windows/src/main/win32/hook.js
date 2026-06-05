@@ -29,6 +29,51 @@ const C = require('./winconst');
 
 const IS_WIN = process.platform === 'win32';
 
+// koffi type + func registration is process-global and throws if a named type
+// is registered twice. Register once and cache — start() may run repeatedly
+// (tray "Re-Arm" calls stop() then start()), so this MUST be re-entrant.
+let _llBindings = null;
+function ensureLLBindings() {
+  if (_llBindings) return _llBindings;
+  const koffi = require('koffi');
+  const user32 = koffi.load('user32.dll');
+  const POINT = koffi.struct('AR_POINT', { x: 'long', y: 'long' });
+  const MSLL = koffi.struct('AR_MSLLHOOKSTRUCT', {
+    pt: POINT,
+    mouseData: 'uint32',
+    flags: 'uint32',
+    time: 'uint32',
+    dwExtraInfo: 'uintptr_t',
+  });
+  const HookProc = koffi.proto(
+    'intptr_t __stdcall AR_LowLevelMouseProc(int nCode, uintptr_t wParam, AR_MSLLHOOKSTRUCT *lParam)'
+  );
+  _llBindings = {
+    koffi,
+    MSLL,
+    HookProc,
+    SetWindowsHookExW: user32.func(
+      'void *SetWindowsHookExW(int idHook, AR_LowLevelMouseProc *lpfn, void *hmod, uint32 dwThreadId)'
+    ),
+    UnhookWindowsHookEx: user32.func('bool UnhookWindowsHookEx(void *hhk)'),
+    CallNextHookEx: user32.func(
+      'intptr_t CallNextHookEx(void *hhk, int nCode, uintptr_t wParam, intptr_t lParam)'
+    ),
+  };
+  return _llBindings;
+}
+
+// Also process-global; bound once for the watchdog's staleness check.
+let _getLastInputInfo = null;
+function ensureGetLastInputInfo() {
+  if (_getLastInputInfo) return _getLastInputInfo;
+  const koffi = require('koffi');
+  const user32 = koffi.load('user32.dll');
+  koffi.struct('AR_LASTINPUTINFO', { cbSize: 'uint32', dwTime: 'uint32' });
+  _getLastInputInfo = user32.func('bool GetLastInputInfo(_Inout_ AR_LASTINPUTINFO *p)');
+  return _getLastInputInfo;
+}
+
 class MouseHook extends EventEmitter {
   constructor() {
     super();
@@ -85,31 +130,18 @@ class MouseHook extends EventEmitter {
 
   _tryStartLLHook() {
     try {
-      const koffi = require('koffi');
-      this._koffi = koffi;
-      const user32 = koffi.load('user32.dll');
-      this._user32 = user32;
-
-      const POINT = koffi.struct('AR_POINT', { x: 'long', y: 'long' });
-      this._MSLL = koffi.struct('AR_MSLLHOOKSTRUCT', {
-        pt: POINT,
-        mouseData: 'uint32',
-        flags: 'uint32',
-        time: 'uint32',
-        dwExtraInfo: 'uintptr_t',
-      });
-
-      const HookProc = koffi.proto(
-        'intptr_t __stdcall AR_LowLevelMouseProc(int nCode, uintptr_t wParam, AR_MSLLHOOKSTRUCT *lParam)'
-      );
-
-      this._fns.SetWindowsHookExW = user32.func(
-        'void *SetWindowsHookExW(int idHook, AR_LowLevelMouseProc *lpfn, void *hmod, uint32 dwThreadId)'
-      );
-      this._fns.UnhookWindowsHookEx = user32.func('bool UnhookWindowsHookEx(void *hhk)');
-      this._fns.CallNextHookEx = user32.func(
-        'intptr_t CallNextHookEx(void *hhk, int nCode, uintptr_t wParam, intptr_t lParam)'
-      );
+      // koffi type/func registration is PROCESS-GLOBAL and throws on a duplicate
+      // name. start() can run more than once (tray "Re-Arm" = stop()+start()),
+      // so the types/funcs must be registered exactly once per process and
+      // reused — only the callback + hook handle are recreated each start().
+      const b = ensureLLBindings();
+      this._koffi = b.koffi;
+      this._MSLL = b.MSLL;
+      this._fns.SetWindowsHookExW = b.SetWindowsHookExW;
+      this._fns.UnhookWindowsHookEx = b.UnhookWindowsHookEx;
+      this._fns.CallNextHookEx = b.CallNextHookEx;
+      const koffi = b.koffi;
+      const HookProc = b.HookProc;
 
       const self = this;
       this._cb = koffi.register(function (nCode, wParam, lParamPtr) {
@@ -177,13 +209,8 @@ class MouseHook extends EventEmitter {
 
   _lastInputTickCount() {
     try {
-      if (!this._fns.GetLastInputInfo) {
-        const user32 = this._koffi.load('user32.dll');
-        this._koffi.struct('AR_LASTINPUTINFO', { cbSize: 'uint32', dwTime: 'uint32' });
-        this._fns.GetLastInputInfo = user32.func('bool GetLastInputInfo(_Inout_ AR_LASTINPUTINFO *p)');
-      }
       const info = { cbSize: 8, dwTime: 0 };
-      return this._fns.GetLastInputInfo(info) ? info.dwTime : null;
+      return ensureGetLastInputInfo()(info) ? info.dwTime : null;
     } catch { return null; }
   }
 

@@ -52,6 +52,14 @@ function runScript(flavor, script, timeoutMs = DEFAULT_TIMEOUT_MS) {
     };
 
     const timer = setTimeout(() => {
+      // Kill the whole tree: PowerShell/cmd can spawn children that outlive a
+      // bare child.kill() (which signals only the shell). On Windows use
+      // taskkill /T /F; elsewhere a SIGKILL to the child suffices here.
+      if (process.platform === 'win32' && child.pid) {
+        try {
+          spawn('taskkill', ['/pid', String(child.pid), '/T', '/F'], { windowsHide: true });
+        } catch { /* fall through to child.kill */ }
+      }
       try { child.kill('SIGKILL'); } catch { /* already dead */ }
       finish({ ok: false, code: null, output: out, error: `timed out after ${timeoutMs}ms` });
     }, timeoutMs);

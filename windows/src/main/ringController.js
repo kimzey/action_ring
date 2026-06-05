@@ -116,30 +116,29 @@ class RingController {
     const s = this.store.settings;
     if (this.state === CLOSED) {
       if (!s.enabled) { this.expectingTriggerUp = false; return 'pass'; }
-      if (this._fullscreenSuppressed) { // cached — not queried in the hook proc
+      if (this._fullscreenSuppressed) { // cached — never queried in the hook proc
         this.expectingTriggerUp = false;
         return 'pass'; // let the game have the click
       }
-      // Commit the synchronous state and verdict NOW; do the heavy work (screen
-      // query + window show + poll start) on the next tick so the hook proc
-      // returns immediately and never trips LowLevelHooksTimeout.
+      // Show synchronously: the only genuinely expensive work (fullscreen +
+      // foreground detection) is precomputed on a timer, so all that's left is
+      // fast main-process-local window ops (setBounds/showInactive + an async
+      // IPC send) — well under the LL-hook timeout. Doing it synchronously keeps
+      // the gesture state machine consistent: a fast click can't slip a
+      // trigger-up in before the ring exists (which would strand it in an
+      // invisible STICKY state).
       this.previewMode = false;
+      this._showRing(this.contextEngine.currentProfile, screen.getCursorScreenPoint());
       this.state = HOLDING;
       this.openedAt = Date.now();
+      this._startPolling();
       this.expectingTriggerUp = true;
-      setImmediate(() => {
-        if (this.state !== HOLDING) return; // gesture already resolved
-        this._showRing(this.contextEngine.currentProfile, screen.getCursorScreenPoint());
-        this._startPolling();
-      });
       return 'suppress';
     }
     // STICKY second click confirms · HOLDING double-down = missed up: resolve now.
+    const selected = this.overlay.updateSelection(screen.getCursorScreenPoint());
+    this._finishRing(selected);
     this.expectingTriggerUp = true;
-    setImmediate(() => {
-      const selected = this.overlay.updateSelection(screen.getCursorScreenPoint());
-      this._finishRing(selected);
-    });
     return 'suppress';
   }
 
