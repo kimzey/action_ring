@@ -282,6 +282,26 @@ test('categoryForAppId mapping + fallback', () => {
   assert.strictEqual(categoryForAppId(null), 'other');
 });
 
+// ---- win32 input: binding-order invariant ------------------------------------------------
+// Regression for "MapVirtualKeyW is not a function": keyEvent() needs the Win32
+// funcs bound, but sendShortcut/tapKey built the events BEFORE send() ran
+// ensureBindings(). The public fns must ensure bindings up front and, when the
+// platform/FFI is unavailable, return false WITHOUT throwing.
+test('input.sendShortcut/tapKey/typeText never throw when bindings unavailable', () => {
+  const input = require('../src/main/win32/input');
+  assert.doesNotThrow(() => {
+    const r1 = input.sendShortcut(0x43, { ctrl: true });
+    const r2 = input.tapKey(0xaf);
+    const r3 = input.typeText('hi');
+    // On non-Windows these are all false; the point is no exception is raised.
+    if (process.platform !== 'win32') {
+      assert.strictEqual(r1, false);
+      assert.strictEqual(r2, false);
+      assert.strictEqual(r3, false);
+    }
+  });
+});
+
 // ---- script safety -------------------------------------------------------------------------
 
 // ---- sanitization / hardening (review findings) -------------------------------------
